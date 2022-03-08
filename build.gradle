@@ -15,15 +15,22 @@ repositories {
 
 ext {
     vertxVersion = "4.2.5"
+    lombokVersion = "1.18.12"
 }
 
 dependencies {
     implementation "io.vertx:vertx-core:$vertxVersion"
     implementation "io.vertx:vertx-web:$vertxVersion"
     implementation "io.vertx:vertx-web-validation:$vertxVersion"
-    implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+    implementation "org.junit.jupiter:junit-jupiter:5.8.2"
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.2"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.2"
+    
+    // lombok
+    compileOnly "org.projectlombok:lombok:$lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    testCompileOnly "org.projectlombok:lombok:$lombokVersion"
+    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
 }
 
 test {
