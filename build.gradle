@@ -25,7 +25,14 @@ dependencies {
     implementation "org.junit.jupiter:junit-jupiter:5.8.2"
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.2"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.2"
-    
+
+    // proxy
+    implementation "io.vertx:vertx-service-proxy:$vertxVersion"
+    implementation "io.vertx:vertx-codegen:$vertxVersion"
+    annotationProcessor "io.vertx:vertx-codegen:$vertxVersion:processor"
+    annotationProcessor "io.vertx:vertx-service-proxy:$vertxVersion"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.9.4"
+
     // lombok
     compileOnly "org.projectlombok:lombok:$lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$lombokVersion"
