@@ -2,10 +2,13 @@ package com.github.penguin418.oauth2.provider.verticles;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import io.vertx.core.http.CookieSameSite;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
 import com.github.penguin418.oauth2.provider.handler.*;
+import io.vertx.ext.web.sstore.SessionStore;
 
 
 public class AuthorizationServerVerticle extends AbstractVerticle {
@@ -18,7 +21,11 @@ public class AuthorizationServerVerticle extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
+        SessionStore sessionStore = SessionStore.create(vertx);
+        SessionHandler sessionHandler =SessionHandler.create(sessionStore).setCookieSameSite(CookieSameSite.STRICT);
+
         Router router = Router.router(vertx);
+        router.route().handler(sessionHandler);
         router.route().handler(StaticHandler.create().setCachingEnabled(false));
         router.route(authorization_uri).handler(new AuthorizationHandler(vertx, login_uri));
         router.route(token_uri).handler(new TokenHandler(vertx));
