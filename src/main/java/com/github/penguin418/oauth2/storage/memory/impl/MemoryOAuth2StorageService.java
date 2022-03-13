@@ -6,8 +6,10 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class MemoryOAuth2StorageService implements OAuth2StorageService {
     private final AtomicInteger userId = new AtomicInteger(0);
@@ -68,6 +70,17 @@ public class MemoryOAuth2StorageService implements OAuth2StorageService {
     public Future<OAuth2User> getUserByUserId(String userId) {
         Promise<OAuth2User> promise = Promise.promise();
         promise.complete(oAuth2UserStorage.get(userId));
+        return promise.future();
+    }
+
+    @Override
+    public Future<OAuth2User> getUserByUsername(String username) {
+        Promise<OAuth2User> promise = Promise.promise();
+        List<OAuth2User> users = oAuth2UserStorage.values().stream().filter(u->u.getUsername().equals(username)).collect(Collectors.toList());
+        if (users.size() == 1) {
+            promise.complete(users.get(0));
+        }else
+            promise.fail("not found");
         return promise.future();
     }
 

@@ -26,6 +26,8 @@ public interface OAuth2StorageService {
 
     Future<OAuth2User> getUserByUserId(String userId);
 
+    Future<OAuth2User> getUserByUsername(String username);
+
     Future<OAuth2AccessToken> putAccessToken(OAuth2AccessToken accessToken);
 
     Future<OAuth2AccessToken> getAccessTokenDetail(String accessToken);
