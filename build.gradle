@@ -36,6 +36,10 @@ dependencies {
     // store
     implementation "at.favre.lib:bcrypt:0.9.0"
 
+    // log
+    implementation 'org.slf4j:slf4j-api:1.7.6'
+    implementation 'org.slf4j:slf4j-simple:1.7.33'
+
     // lombok
     compileOnly "org.projectlombok:lombok:$lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$lombokVersion"
