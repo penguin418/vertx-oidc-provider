@@ -8,6 +8,10 @@ import lombok.Setter;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 
 @Getter
@@ -26,6 +30,12 @@ public class OAuth2Code {
     private String codeChallengeMethod;
     @JsonProperty("expires_at")
     private Instant expiresAt;
+
+    public OAuth2Code(String redirectUri){
+        this.code = UUID.randomUUID().toString();
+        this.redirectUri = redirectUri;
+        this.expiresAt = Instant.now().plus(1, ChronoUnit.MINUTES);
+    }
 
     public OAuth2Code(JsonObject jsonObject) {
         this.code = jsonObject.getString("code");

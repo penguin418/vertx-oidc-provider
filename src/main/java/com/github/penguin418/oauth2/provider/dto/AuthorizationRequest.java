@@ -1,18 +1,15 @@
 package com.github.penguin418.oauth2.provider.dto;
 
-import com.github.penguin418.oauth2.provider.exception.AuthError;
 import com.github.penguin418.oauth2.provider.exception.AuthException;
-import com.github.penguin418.oauth2.provider.validation.BasicABNFComparator;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.core.spi.observability.HttpRequest;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * Authorization Request<br>
