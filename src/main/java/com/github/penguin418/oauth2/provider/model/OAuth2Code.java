@@ -31,8 +31,9 @@ public class OAuth2Code {
     @JsonProperty("expires_at")
     private Instant expiresAt;
 
-    public OAuth2Code(String redirectUri){
+    public OAuth2Code(String authentication, String redirectUri) {
         this.code = UUID.randomUUID().toString();
+        this.authentication = authentication;
         this.redirectUri = redirectUri;
         this.expiresAt = Instant.now().plus(1, ChronoUnit.MINUTES);
     }
