@@ -9,6 +9,8 @@ import io.vertx.ext.web.handler.StaticHandler;
 
 import com.github.penguin418.oauth2.provider.handler.*;
 import io.vertx.ext.web.sstore.SessionStore;
+import io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 
 public class AuthorizationServerVerticle extends AbstractVerticle {
@@ -22,7 +24,8 @@ public class AuthorizationServerVerticle extends AbstractVerticle {
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
         SessionStore sessionStore = SessionStore.create(vertx);
-        SessionHandler sessionHandler =SessionHandler.create(sessionStore).setCookieSameSite(CookieSameSite.STRICT);
+        SessionHandler sessionHandler = SessionHandler.create(sessionStore).setCookieSameSite(CookieSameSite.STRICT);
+
 
         Router router = Router.router(vertx);
         router.route().handler(sessionHandler);
@@ -30,7 +33,7 @@ public class AuthorizationServerVerticle extends AbstractVerticle {
         router.route(authorization_uri).handler(new AuthorizationHandler(vertx, login_uri));
         router.route(token_uri).handler(new TokenHandler(vertx));
         router.route(user_info_uri).handler(new UserInfoHandler(vertx));
-        router.route(login_uri).handler(new LoginHandler(vertx));
+        router.route(login_uri).handler(new LoginHandler(vertx, login_uri));
         router.route(permit_uri).handler(new PermitHandler(vertx));
         vertx.createHttpServer().requestHandler(router).listen(8888);
         startPromise.complete();
