@@ -1,9 +1,10 @@
 plugins {
-    id 'java'
+    id "java"
+    id "io.vertx.vertx-plugin" version "1.3.0"
 }
 
-group 'com.github.penguin418'
-version '1.0-SNAPSHOT'
+group "com.github.penguin418"
+version "1.0-SNAPSHOT"
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
@@ -12,11 +13,47 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    vertxVersion = "4.2.5"
+    lombokVersion = "1.18.12"
+}
+
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    implementation "io.vertx:vertx-core:$vertxVersion"
+    implementation "io.vertx:vertx-web:$vertxVersion"
+    implementation "io.vertx:vertx-web-validation:$vertxVersion"
+    implementation "org.junit.jupiter:junit-jupiter:5.8.2"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.2"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.2"
+
+    // template engine
+    implementation "io.vertx:vertx-web-templ-thymeleaf:$vertxVersion"
+
+    // proxy
+    implementation "io.vertx:vertx-service-proxy:$vertxVersion"
+    implementation "io.vertx:vertx-codegen:$vertxVersion"
+    annotationProcessor "io.vertx:vertx-codegen:$vertxVersion:processor"
+    annotationProcessor "io.vertx:vertx-service-proxy:$vertxVersion"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.9.4"
+
+    // store
+    implementation "at.favre.lib:bcrypt:0.9.0"
+
+    // log
+    implementation 'org.slf4j:slf4j-api:1.7.6'
+    implementation 'org.slf4j:slf4j-simple:1.7.33'
+
+    // lombok
+    compileOnly "org.projectlombok:lombok:$lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    testCompileOnly "org.projectlombok:lombok:$lombokVersion"
+    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
 }
 
 test {
     useJUnitPlatform()
+}
+
+vertx {
+    mainVerticle "com.github.penguin418.oauth2.provider.LauncherVerticle"
 }
