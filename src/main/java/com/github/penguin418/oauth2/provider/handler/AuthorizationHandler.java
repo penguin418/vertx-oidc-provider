@@ -37,7 +37,6 @@ public class AuthorizationHandler implements Handler<RoutingContext> {
         final AuthorizationRequest request = AuthorizationRequest.fromQuery(event.request());
         storageService.getClientByClientId(request.getClientId())
                 .onSuccess(client -> {
-
                     String redirectionUri = request.getRedirectUri();
                     if (redirectionUri == null) {
                         event.session().put(AuthorizationRequest.SESSION_STORE_NAME, request);

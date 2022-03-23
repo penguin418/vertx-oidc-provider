@@ -3,6 +3,7 @@ package com.github.penguin418.oauth2.provider.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,6 +14,7 @@ import java.util.Set;
 @Getter
 @Setter
 @DataObject
+@AllArgsConstructor
 public class OAuth2Permission {
     @JsonProperty("user_id")
     private String userId;
