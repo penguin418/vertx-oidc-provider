@@ -1,5 +1,6 @@
 package com.github.penguin418.oauth2.provider.validation;
 
+import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 
 import java.net.URI;
@@ -29,6 +30,7 @@ public class AuthorizationRequestValidation {
      * @return
      */
     private boolean hasAllowedFormat(RoutingContext event) {
+        if (event.request().method().equals(HttpMethod.GET)) return true;
         final String key = "content-type";
         return event.request().getHeader(key).equalsIgnoreCase("application/x-www-form-urlencoded");
     }

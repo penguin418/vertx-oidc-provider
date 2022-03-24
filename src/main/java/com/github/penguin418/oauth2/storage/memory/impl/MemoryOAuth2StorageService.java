@@ -60,6 +60,7 @@ public class MemoryOAuth2StorageService implements OAuth2StorageService {
     public Future<OAuth2User> putUser(OAuth2User user) {
         Promise<OAuth2User> promise = Promise.promise();
         String id = "user_" + userId.getAndIncrement();
+        user.setUserId(id);
         oAuth2UserStorage.put(id, user);
         user.setUserId(id);
         promise.complete(user);
