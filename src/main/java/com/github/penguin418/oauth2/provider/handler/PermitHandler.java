@@ -20,12 +20,14 @@ import static com.github.penguin418.oauth2.provider.exception.AuthError.INVALID_
 public class PermitHandler implements Handler<RoutingContext> {
     private final Vertx vertx;
     private final String permit_uri;
+    private final String login_uri;
     private final ThymeleafUtil thymeleafUtil;
     private final OAuth2StorageService storageService;
 
-    public PermitHandler(Vertx vertx, String permit_uri) {
+    public PermitHandler(Vertx vertx, String permit_uri, String login_uri) {
         this.vertx = vertx;
         this.permit_uri = permit_uri;
+        this.login_uri = login_uri;
         this.thymeleafUtil = new ThymeleafUtil(vertx);
         this.storageService = OAuth2StorageService.createProxy(vertx);
     }
@@ -47,7 +49,7 @@ public class PermitHandler implements Handler<RoutingContext> {
             final String[] scopes = oauth2Request.getScope().split(" ");
 
             storageService.putPermission(new OAuth2Permission(userId, clientId, Arrays.asList(scopes)));
-            // TODO: login handler 의 로직을 이쪽으로 이동
+            event.redirect(login_uri);
         }
     }
 }

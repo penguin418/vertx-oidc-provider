@@ -7,9 +7,11 @@ import com.github.penguin418.oauth2.provider.validation.AuthorizationRequestVali
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
+import lombok.extern.slf4j.Slf4j;
 
 import static com.github.penguin418.oauth2.provider.exception.AuthError.*;
 
+@Slf4j
 public class AuthorizationHandler implements Handler<RoutingContext> {
     private final Vertx vertx;
     private final String login_uri;
@@ -25,7 +27,6 @@ public class AuthorizationHandler implements Handler<RoutingContext> {
 
     @Override
     public void handle(RoutingContext event) {
-        // 입력값 검사
         if (event.queryParams().get("response_type").equals("code")) {
             if (!validator.isValidCodeAuthorizationRequest(event))
                 event.fail(INVALID_REQUEST.exception());
@@ -37,6 +38,7 @@ public class AuthorizationHandler implements Handler<RoutingContext> {
         final AuthorizationRequest request = AuthorizationRequest.fromQuery(event.request());
         storageService.getClientByClientId(request.getClientId())
                 .onSuccess(client -> {
+                    log.info("code grant request from client(client_id={})", client.getClientId());
                     String redirectionUri = request.getRedirectUri();
                     if (redirectionUri == null) {
                         event.session().put(AuthorizationRequest.SESSION_STORE_NAME, request);
@@ -46,8 +48,10 @@ public class AuthorizationHandler implements Handler<RoutingContext> {
                         event.redirect(login_uri);
                     } else {
                         AuthError error = INVALID_REDIRECT_URI.withDetail(redirectionUri);
-                        if (request.getState() != null)
+                        if (request.getState() != null) {
+                            log.info("state is null");
                             error.withState(request.getState());
+                        }
                         event.fail(error.exception());
                     }
                 }).onFailure(fail->{

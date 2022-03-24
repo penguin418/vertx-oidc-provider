@@ -32,11 +32,15 @@ public class AuthorizationServerVerticle extends AbstractVerticle {
         router.route().handler(sessionHandler);
         router.route().handler(BodyHandler.create());
         router.route().handler(StaticHandler.create().setCachingEnabled(false));
+        router.route().handler(ctx->{
+           log.info("{} {}", ctx.request().method(), ctx.request().uri());
+            ctx.next();
+        });
         router.route(authorization_uri).handler(new AuthorizationHandler(vertx, login_uri));
         router.route(token_uri).handler(new TokenHandler(vertx));
         router.route(user_info_uri).handler(new UserInfoHandler(vertx));
         router.route(login_uri).handler(new LoginHandler(vertx, login_uri, permit_uri));
-        router.route(permit_uri).handler(new PermitHandler(vertx, login_uri));
+        router.route(permit_uri).handler(new PermitHandler(vertx, permit_uri, login_uri));
         vertx.createHttpServer().requestHandler(router).listen(8888);
         startPromise.complete();
     }

@@ -24,7 +24,7 @@ public class DummyDataGeneratorVerticle extends AbstractVerticle {
         storageService.putClient(client.encrypt());
 
         OAuth2User user = new OAuth2User(
-                "username",
+                "username@cj.net",
                 "password"
         );
         log.info("new user={}", user.toJson());
