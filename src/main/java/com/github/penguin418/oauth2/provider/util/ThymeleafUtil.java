@@ -6,10 +6,12 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine;
+import lombok.extern.slf4j.Slf4j;
 
 
 import static io.vertx.ext.web.handler.StaticHandler.DEFAULT_WEB_ROOT;
 
+@Slf4j
 public class ThymeleafUtil {
     private final ThymeleafTemplateEngine engine;
 

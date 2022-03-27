@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<title>Permissions</title>
+<style>
+    .center-text {
+        display: inline-block;
+        text-align: justify;
+    }
+
+    .flex-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .flex-item {
+        width: 10rem;
+        height: 2rem;
+    }
+    .flex-item2{
+        width: 20rem;
+        height: 2rem;
+    }
+
+
+</style>
+
+</html>
+
+<body>
+<div class="container">
+    <form id="permit-form" th:action="@{${permit_uri}}" method="post">
+        <div class="flex-container">
+            <h3>Permissions</h3>
+        </div>
+        This site is requesting following scope of permissions to:
+        <div class="flex-container" th:each="scope : ${scopes}">
+            <p class="flex-item2" th:text="${scope}"></p>
+        </div>
+        <div class="flex-container">
+            <button type="submit" class="flex-item2">permit</button>
+        </div>
+    </form>
+</div>
+</body>

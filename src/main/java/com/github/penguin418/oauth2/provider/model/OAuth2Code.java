@@ -22,6 +22,8 @@ public class OAuth2Code {
     private String code;
     @JsonProperty("authentication")
     private String authentication;
+    @JsonProperty("user_id")
+    private String userId;
     @JsonProperty("redirect_uri")
     private String redirectUri;
     @JsonProperty("code_challenge")
@@ -31,9 +33,10 @@ public class OAuth2Code {
     @JsonProperty("expires_at")
     private Instant expiresAt;
 
-    public OAuth2Code(String authentication, String redirectUri) {
+    public OAuth2Code(String authentication, String userId, String redirectUri) {
         this.code = UUID.randomUUID().toString();
         this.authentication = authentication;
+        this.userId = userId;
         this.redirectUri = redirectUri;
         this.expiresAt = Instant.now().plus(1, ChronoUnit.MINUTES);
     }
@@ -41,6 +44,7 @@ public class OAuth2Code {
     public OAuth2Code(JsonObject jsonObject) {
         this.code = jsonObject.getString("code");
         this.authentication = jsonObject.getString("authentication");
+        this.userId = jsonObject.getString("user_id");
         this.redirectUri = jsonObject.getString("redirect_uri");
         this.codeChallenge = jsonObject.getString("code_challenge");
         this.codeChallengeMethod = jsonObject.getString("code_challenge_method");

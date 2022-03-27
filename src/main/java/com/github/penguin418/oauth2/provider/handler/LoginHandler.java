@@ -1,6 +1,8 @@
 package com.github.penguin418.oauth2.provider.handler;
 
 import com.github.penguin418.oauth2.provider.dto.AuthorizationRequest;
+import com.github.penguin418.oauth2.provider.exception.AuthError;
+import com.github.penguin418.oauth2.provider.exception.AuthException;
 import com.github.penguin418.oauth2.provider.model.OAuth2Code;
 import com.github.penguin418.oauth2.provider.model.OAuth2User;
 import com.github.penguin418.oauth2.provider.service.OAuth2StorageService;
@@ -12,20 +14,26 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Arrays;
 
 import static com.github.penguin418.oauth2.provider.exception.AuthError.*;
 
+@Slf4j
 public class LoginHandler implements Handler<RoutingContext> {
     private final Vertx vertx;
     private final String login_uri;
+    private final String permit_uri;
     private final JsonObject login_uri_info;
     private final OAuth2StorageService storageService;
     private final ThymeleafUtil thymeleafUtil;
 
 
-    public LoginHandler(Vertx vertx, String login_uri) {
+    public LoginHandler(Vertx vertx, String login_uri, String permit_uri) {
         this.vertx = vertx;
         this.login_uri = login_uri;
+        this.permit_uri = permit_uri;
         this.login_uri_info = new JsonObject().put("login_uri", login_uri);
         this.storageService = OAuth2StorageService.createProxy(vertx);
         this.thymeleafUtil = new ThymeleafUtil(vertx);
@@ -35,7 +43,7 @@ public class LoginHandler implements Handler<RoutingContext> {
     public void handle(RoutingContext event) {
         if (event.request().method().equals(HttpMethod.GET)) {
             getUserIfLoggedIn(event)
-                    .onSuccess(user -> redirectToRequester(event))
+                    .onSuccess(user -> checkPermissionThenRedirect(event))
                     .onFailure(fail -> thymeleafUtil.render(event, login_uri_info, login_uri));
         } else if (event.request().method().equals(HttpMethod.POST)) {
             handlePostRequest(event);
@@ -44,14 +52,13 @@ public class LoginHandler implements Handler<RoutingContext> {
 
     private void handlePostRequest(RoutingContext event) {
         // json 으로 body 획득
-        event.request().body().compose(rawBody -> {
-                    JsonObject body = rawBody.toJsonObject();
-
-                    // 로그인 된 경우, 로그인 정보 획득
-                    return getUserIfLoginSuccess(event, body)
-                            // session 이 존재하면 해당 정보를 통해 리다이렉션 여부 결정
-                            .onSuccess(user -> redirectToRequester(event));
-                })// 위의 모든 에러에 대해
+        final String username = event.request().getFormAttribute("username");
+        final String password = event.request().getFormAttribute("password");
+        // 로그인 된 경우, 로그인 정보 획득
+        getUserIfLoginSuccess(event, username, password)
+                // session 이 존재하면 해당 정보를 통해 리다이렉션 여부 결정
+                .onSuccess(user -> checkPermissionThenRedirect(event))
+                // 위의 모든 에러에 대해
                 .onFailure(fail -> event.fail(ACCESS_DENIED.exception()));
     }
 
@@ -70,32 +77,61 @@ public class LoginHandler implements Handler<RoutingContext> {
     }
 
 
-    private Future<OAuth2User> getUserIfLoginSuccess(RoutingContext event, JsonObject body) {
+    private Future<OAuth2User> getUserIfLoginSuccess(RoutingContext event, final String username, final String password) {
         Promise<OAuth2User> promise = Promise.promise();
-        final String username = body.getString("username");
-        final String password = body.getString("password");
-
+        log.info("getUserIfLoginSuccess");
         storageService.getUserByUsername(username).onSuccess(user -> {
+            log.info("user: {}", user.toJson().encode());
             if (user.verified(password)) {
                 user.addToSession(event);
                 promise.complete(user);
             } else
-                promise.fail("failed to login");
+                promise.fail(ACCESS_DENIED_LOGIN_FAILURE.exception());
+        }).onFailure(fail->{
+            promise.fail(ACCESS_DENIED_LOGIN_FAILURE.exception());
         });
         return promise.future();
     }
 
-    private void redirectToRequester(RoutingContext event) {
-        AuthorizationRequest oauth2Request = event.session().get(AuthorizationRequest.SESSION_STORE_NAME);
-        if (oauth2Request != null) {
-            OAuth2Code oAuth2code = new OAuth2Code(event.session().id(), oauth2Request.getRedirectUri());
-            storageService.putCode(oAuth2code).onSuccess(code -> {
-                String redirectUri = oauth2Request.getRedirectUri() + "?code=" + code.getCode();
-                if (oauth2Request.getState() != null) redirectUri += "&state=" + oauth2Request.getState();
-                event.redirect(redirectUri);
-            }).onFailure(fail -> {
-                event.fail(INVALID_REDIRECT_URI.exception());
-            });
+    private void checkPermissionThenRedirect(RoutingContext event) {
+        log.info("checkPermissionThenRedirect");
+        final AuthorizationRequest oauth2Request = event.session().get(AuthorizationRequest.SESSION_STORE_NAME);
+        final OAuth2User oAuth2User = OAuth2User.getLoggedInUser(event);
+        if (oauth2Request != null && oAuth2User != null) {
+            final String userId = oAuth2User.getUserId();
+            final String clientId = oauth2Request.getClientId();
+            final String[] scopes = oauth2Request.getScope().split(" ");
+            OAuth2Code oAuth2code = new OAuth2Code(event.session().id(), userId, oauth2Request.getRedirectUri());
+
+            storageService.getPermissionByUserId(userId, clientId)
+                    .onSuccess(permissions -> {
+                        if (permissions == null) {
+                            log.info("no permission");
+                            redirectToPermissionGrantPage(event, oauth2Request);
+                        }else if (permissions.getScopes().containsAll(Arrays.asList(scopes))) {
+                            log.info("permission {} ", permissions.toJson().encode());
+                            redirectToReferer(event, oauth2Request, oAuth2code);
+                        }else throw AuthError.INVALID_REQUEST.exception();
+                    }).onFailure(fail -> redirectToPermissionGrantPage(event, oauth2Request));
         }
+    }
+
+    private void redirectToReferer(RoutingContext event, AuthorizationRequest oauth2Request, OAuth2Code oAuth2code) {
+        log.info("redirectToReferer");
+        storageService.putCode(oAuth2code).onSuccess(code -> {
+            String redirectUri = oauth2Request.getRedirectUri() + "?code=" + code.getCode();
+            if (oauth2Request.getState() != null) redirectUri += "&state=" + oauth2Request.getState();
+            event.session().remove(AuthorizationRequest.SESSION_STORE_NAME);
+            event.redirect(redirectUri);
+        }).onFailure(fail -> {
+            event.fail(INVALID_REDIRECT_URI.exception());
+        });
+    }
+
+    private void redirectToPermissionGrantPage(RoutingContext event, AuthorizationRequest oauth2Request) {
+        log.info("redirectToPermissionGrantPage");
+        final String[] scopes = oauth2Request.getScope().split(" ");
+        final JsonObject data = new JsonObject().put("permit_uri", permit_uri).put("scopes", scopes);
+        thymeleafUtil.render(event, data, permit_uri);
     }
 }
