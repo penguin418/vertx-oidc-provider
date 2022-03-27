@@ -1,5 +1,6 @@
 package com.github.penguin418.oauth2.provider.verticles;
 
+import com.github.penguin418.oauth2.provider.handler.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.http.CookieSameSite;
@@ -7,12 +8,8 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.StaticHandler;
-
-import com.github.penguin418.oauth2.provider.handler.*;
 import io.vertx.ext.web.sstore.SessionStore;
-import io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine;
 import lombok.extern.slf4j.Slf4j;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 @Slf4j
 public class AuthorizationServerVerticle extends AbstractVerticle {
@@ -26,14 +23,15 @@ public class AuthorizationServerVerticle extends AbstractVerticle {
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
         SessionStore sessionStore = SessionStore.create(vertx);
-        SessionHandler sessionHandler = SessionHandler.create(sessionStore).setCookieSameSite(CookieSameSite.STRICT);
+        SessionHandler sessionHandler = SessionHandler.create(sessionStore).setCookieSameSite(CookieSameSite.LAX);
 
         Router router = Router.router(vertx);
+
         router.route().handler(sessionHandler);
         router.route().handler(BodyHandler.create());
         router.route().handler(StaticHandler.create().setCachingEnabled(false));
         router.route().handler(ctx->{
-           log.info("{} {}", ctx.request().method(), ctx.request().uri());
+           log.info("[{}] {} {}", ctx.session().id(), ctx.request().method(), ctx.request().uri());
             ctx.next();
         });
         router.route(authorization_uri).handler(new AuthorizationHandler(vertx, login_uri));

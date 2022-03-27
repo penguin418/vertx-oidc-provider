@@ -101,7 +101,7 @@ public class LoginHandler implements Handler<RoutingContext> {
             final String userId = oAuth2User.getUserId();
             final String clientId = oauth2Request.getClientId();
             final String[] scopes = oauth2Request.getScope().split(" ");
-            OAuth2Code oAuth2code = new OAuth2Code(event.session().id(), oauth2Request.getRedirectUri());
+            OAuth2Code oAuth2code = new OAuth2Code(event.session().id(), userId, oauth2Request.getRedirectUri());
 
             storageService.getPermissionByUserId(userId, clientId)
                     .onSuccess(permissions -> {
