@@ -3,6 +3,7 @@ package com.github.penguin418.oauth2.provider.handler;
 import com.github.penguin418.oauth2.provider.dto.AuthorizationRequest;
 import com.github.penguin418.oauth2.provider.model.OAuth2Permission;
 import com.github.penguin418.oauth2.provider.model.OAuth2User;
+import com.github.penguin418.oauth2.provider.model.constants.VertxConstants;
 import com.github.penguin418.oauth2.provider.service.OAuth2StorageService;
 import com.github.penguin418.oauth2.provider.util.ThymeleafUtil;
 import io.vertx.core.Handler;
@@ -49,7 +50,8 @@ public class PermitHandler implements Handler<RoutingContext> {
             final String[] scopes = oauth2Request.getScope().split(" ");
 
             storageService.putPermission(new OAuth2Permission(userId, clientId, Arrays.asList(scopes)));
-            event.redirect(login_uri);
+            String returnUrl = event.request().headers().get("Referer");
+            event.redirect(returnUrl);
         }
     }
 }

@@ -6,6 +6,7 @@ import com.github.penguin418.oauth2.provider.model.OAuth2Code;
 import com.github.penguin418.oauth2.provider.model.OAuth2User;
 import com.github.penguin418.oauth2.provider.model.Oauth2Client;
 import com.github.penguin418.oauth2.provider.service.OAuth2StorageService;
+import com.github.penguin418.oauth2.provider.util.AuthorizationUtil;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
@@ -56,22 +57,19 @@ public class TokenHandler implements Handler<RoutingContext> {
         final String clientId = event.request().getFormAttribute("client_id");
         final String authorization = event.request().getHeader("Authorization");
 
-        if (authorization == null || !authorization.startsWith("Basic"))
-            event.fail(AuthError.ACCESS_DENIED_LOGIN_FAILURE.exception());
         storageService.getClientByClientId(clientId)
-                .compose(clientDetail -> verifyAuthorizationHeader(authorization, clientDetail))
+                .compose(clientDetail -> verifyAuthorizationHeader(event, clientDetail))
                 .compose(onVerified -> storageService.getCodeDetail(code))
                 .compose(codeDetail -> sendBackAccessToken(event, code, redirectUri, clientId, codeDetail))
                 .onFailure(event::fail);
     }
 
-    private Future<Void> verifyAuthorizationHeader(String authorization, Oauth2Client clientDetail) {
+    private Future<Void> verifyAuthorizationHeader(RoutingContext event, Oauth2Client clientDetail) {
         Promise<Void> promise = Promise.promise();
         try {
-            byte[] tmpBytes = Base64.getUrlDecoder().decode(authorization.substring(6));
-            String credential = new String(tmpBytes);
-            String[] idAndSecret = credential.split(":");
-            if (clientDetail.verified(idAndSecret[1]))
+            String[] idSecret = AuthorizationUtil.parseAuthentication(event);
+            if (clientDetail.getClientId().equals(idSecret[0]) &&
+                    clientDetail.verified(idSecret[1]))
                 promise.complete();
         } finally {
             promise.tryFail("");
@@ -96,7 +94,7 @@ public class TokenHandler implements Handler<RoutingContext> {
         return storageService.getUserByUserId(codeDetail.getUserId())
                 .compose(user -> getOAuth2AccessToken(clientId, user))
                 .compose(storageService::putAccessToken)
-                .onSuccess(storedAccessToken-> event.response().send(storedAccessToken.toJson().encode()));
+                .onSuccess(storedAccessToken -> event.response().send(storedAccessToken.toJson().encode()));
     }
 
     private Future<OAuth2AccessToken> getOAuth2AccessToken(String clientId, OAuth2User user) {

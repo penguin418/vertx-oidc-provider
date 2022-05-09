@@ -1,42 +1,44 @@
 package com.github.penguin418.oauth2.provider.filter;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
+import com.github.penguin418.oauth2.provider.service.OAuth2StorageService;
+import io.vertx.core.*;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.handler.RedirectAuthHandler;
 import io.vertx.ext.web.handler.impl.AuthenticationHandlerImpl;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-public class AuthSessionHandler extends AuthenticationHandlerImpl<AuthenticationProvider> {
-    private final String login_uri;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Base64;
 
-    public AuthSessionHandler(AuthenticationProvider authProvider, String login_uri) {
+@Slf4j
+public class AuthSessionHandler extends AuthenticationHandlerImpl<AuthenticationProvider> implements AuthenticationHandler {
+    private final String AUTHENTICATION_HEADER_NAME = "authorization";
+    private final String login_uri;
+    private final OAuth2StorageService storageService;
+
+
+    public AuthSessionHandler(AuthenticationProvider authProvider, Vertx vertx, String login_uri) {
         super (authProvider);
         this.login_uri = login_uri;
+        this.storageService = OAuth2StorageService.createProxy(vertx);
     }
 
     @Override
     public void authenticate(RoutingContext context, Handler<AsyncResult<User>> handler) {
-//        if (context.request().uri().contains(login_uri) && context.request().method().equals(HttpMethod.POST)){
-//            MultiMap map = context.request().formAttributes();
-//            JsonObject loginInfo = new JsonObject();
-//            loginInfo.put("username", map.get("username"));
-//            loginInfo.put("password", map.get("password"));
-//
-//            this.authProvider.authenticate(loginInfo, handler);
-//        }else
-            if (context.user() == null){
-            log.info("not logged in");
+        log.info("[auth - handler] - session: {}", context.session());
+        if (context.user() == null){
+            log.info("not logged in.");
             Session session = context.session();
             session.put("return_url", context.request().uri());
             handler.handle(Future.failedFuture(new HttpException(302, login_uri)));
         }else{
-            log.info("user: {}", context.user().principal().encode());
+            log.info("logged in. user: {}", context.user().principal().encode());
             handler.handle(Future.succeededFuture(context.user()));
         }
     }
