@@ -1,10 +1,9 @@
 package com.github.penguin418.oauth2.provider.handler;
 
-import com.github.penguin418.oauth2.provider.exception.AuthError;
+import com.github.penguin418.oauth2.provider.helper.ClientAuthenticationHelper;
 import com.github.penguin418.oauth2.provider.model.OAuth2AccessToken;
 import com.github.penguin418.oauth2.provider.model.OAuth2Code;
 import com.github.penguin418.oauth2.provider.model.OAuth2User;
-import com.github.penguin418.oauth2.provider.model.Oauth2Client;
 import com.github.penguin418.oauth2.provider.service.OAuth2StorageService;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -15,7 +14,6 @@ import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
-import java.util.Base64;
 
 import static com.github.penguin418.oauth2.provider.exception.AuthError.ACCESS_DENIED;
 import static com.github.penguin418.oauth2.provider.exception.AuthError.INVALID_REQUEST;
@@ -24,6 +22,7 @@ import static com.github.penguin418.oauth2.provider.exception.AuthError.INVALID_
 public class TokenHandler implements Handler<RoutingContext> {
     private final Vertx vertx;
     private final OAuth2StorageService storageService;
+    private static final ClientAuthenticationHelper clientAuthHelper = new ClientAuthenticationHelper();
 
     public TokenHandler(Vertx vertx) {
         this.vertx = vertx;
@@ -56,27 +55,11 @@ public class TokenHandler implements Handler<RoutingContext> {
         final String clientId = event.request().getFormAttribute("client_id");
         final String authorization = event.request().getHeader("Authorization");
 
-        if (authorization == null || !authorization.startsWith("Basic"))
-            event.fail(AuthError.ACCESS_DENIED_LOGIN_FAILURE.exception());
         storageService.getClientByClientId(clientId)
-                .compose(clientDetail -> verifyAuthorizationHeader(authorization, clientDetail))
+                .compose(clientDetail -> clientAuthHelper.tryAuthenticate(event, clientDetail))
                 .compose(onVerified -> storageService.getCodeDetail(code))
                 .compose(codeDetail -> sendBackAccessToken(event, code, redirectUri, clientId, codeDetail))
                 .onFailure(event::fail);
-    }
-
-    private Future<Void> verifyAuthorizationHeader(String authorization, Oauth2Client clientDetail) {
-        Promise<Void> promise = Promise.promise();
-        try {
-            byte[] tmpBytes = Base64.getUrlDecoder().decode(authorization.substring(6));
-            String credential = new String(tmpBytes);
-            String[] idAndSecret = credential.split(":");
-            if (clientDetail.verified(idAndSecret[1]))
-                promise.complete();
-        } finally {
-            promise.tryFail("");
-        }
-        return promise.future();
     }
 
     private Future<OAuth2AccessToken> sendBackAccessToken(RoutingContext event, String code, String redirectUri, String clientId, OAuth2Code codeDetail) {
@@ -96,7 +79,7 @@ public class TokenHandler implements Handler<RoutingContext> {
         return storageService.getUserByUserId(codeDetail.getUserId())
                 .compose(user -> getOAuth2AccessToken(clientId, user))
                 .compose(storageService::putAccessToken)
-                .onSuccess(storedAccessToken-> event.response().send(storedAccessToken.toJson().encode()));
+                .onSuccess(storedAccessToken -> event.response().send(storedAccessToken.toJson().encode()));
     }
 
     private Future<OAuth2AccessToken> getOAuth2AccessToken(String clientId, OAuth2User user) {
