@@ -17,6 +17,8 @@ import java.util.UUID;
 
 @DataObject
 public class Oauth2Client {
+    public static final String SESSION_STORE_NAME = "authorization_request";
+
     @Getter @Setter
     @JsonProperty("client_id")
     private String clientId;

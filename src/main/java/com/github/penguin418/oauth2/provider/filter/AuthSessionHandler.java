@@ -18,7 +18,6 @@ import java.util.Base64;
 
 @Slf4j
 public class AuthSessionHandler extends AuthenticationHandlerImpl<AuthenticationProvider> implements AuthenticationHandler {
-    private final String AUTHENTICATION_HEADER_NAME = "authorization";
     private final String login_uri;
     private final OAuth2StorageService storageService;
 
