@@ -10,7 +10,6 @@ import com.github.penguin418.oauth2.provider.service.OAuth2StorageService;
 import com.github.penguin418.oauth2.provider.util.ThymeleafUtil;
 import com.github.penguin418.oauth2.provider.validation.AuthorizationRequestValidation;
 import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -44,63 +43,24 @@ public class AuthorizationHandler implements Handler<RoutingContext> {
 
         if (request.isAuthorizationCodeGrantRequest()) {
             handleCodeGrant(event, request);
-//        } else if (request.isImplicitGrantRequest()) {
-//            handleImplicitGrant(event, request);
+        } else if (request.isImplicitGrantRequest()) {
+            handleImplicitGrant(event, request);
         } else event.fail(INVALID_REQUEST.exception());
+    }
+
+    private void handleImplicitGrant(RoutingContext event, AuthorizationRequest request) {
+
     }
 
     private void handleCodeGrant(RoutingContext event, AuthorizationRequest request) {
         storageService.getClientByClientId(request.getClientId())
                 .onSuccess(client -> {
                     log.info("code grant request from client(client_id={})", client.getClientId());
-//                    String redirectionUri = request.getRedirectUri();
-//                    if (redirectionUri == null) {
-//                        request.setRedirectUri(client.getRedirectUris().get(0));
-//                        event.session().put(AuthorizationRequest.SESSION_STORE_NAME, request);
-//                        event.redirect(login_uri);
-//                    } else if (client.getRedirectUris().contains(redirectionUri)) {
-//                        event.session().put(AuthorizationRequest.SESSION_STORE_NAME, request);
-//                        event.redirect(login_uri);
-//                    } else {
-//                        AuthError error = INVALID_REDIRECT_URI.withDetail(redirectionUri);
-//                        if (request.getState() != null) {
-//                            log.info("state is null");
-//                            error.withState(request.getState());
-//                        }
-//                        event.fail(error.exception());
-//                    }
                     checkPermissionThenRedirect(event, request);
                 }).onFailure(fail -> {
                     event.fail(UNAUTHORIZED_CLIENT.exception());
                 });
     }
-
-//    private void handleImplicitGrant(RoutingContext event, AuthorizationRequest request) {
-//        storageService.getClientByClientId(request.getClientId())
-//                .onSuccess(client -> {
-//                    log.info("implicit grant request from client(client_id={})", client.getClientId());
-//                    String redirectionUri = request.getRedirectUri();
-//                    log.info("redirectUri: {}", redirectionUri);
-//                    if (redirectionUri == null) {
-//                        request.setRedirectUri(client.getRedirectUris().get(0));
-//                        event.session().put(AuthorizationRequest.SESSION_STORE_NAME, request);
-//                        event.redirect(login_uri);
-//                    } else if (client.getRedirectUris().contains(redirectionUri)) {
-//                        event.session().put(AuthorizationRequest.SESSION_STORE_NAME, request);
-//                        event.redirect(login_uri);
-//                    } else {
-//                        AuthError error = INVALID_REDIRECT_URI.withDetail(redirectionUri);
-//                        if (request.getState() != null) {
-//                            log.info("state is null");
-//                            error.withState(request.getState());
-//                        }
-//                        event.fail(error.exception());
-//                    }
-//                }).onFailure(fail -> {
-//                    event.fail(UNAUTHORIZED_CLIENT.exception());
-//                });
-//    }
-
 
     private void checkPermissionThenRedirect(RoutingContext event, AuthorizationRequest oauth2Request) {
         log.info("checkPermissionThenRedirect");

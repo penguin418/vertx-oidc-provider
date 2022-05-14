@@ -1,5 +1,7 @@
 package com.github.penguin418.oauth2.provider.handler;
 
+import com.github.penguin418.oauth2.provider.dto.AccessTokenResponse;
+import com.github.penguin418.oauth2.provider.exception.AuthError;
 import com.github.penguin418.oauth2.provider.helper.ClientAuthenticationHelper;
 import com.github.penguin418.oauth2.provider.model.OAuth2AccessToken;
 import com.github.penguin418.oauth2.provider.model.OAuth2Code;
@@ -43,17 +45,45 @@ public class TokenHandler implements Handler<RoutingContext> {
         final String grantType = event.request().getFormAttribute("grant_type");
         if (grantType.equals("authorization_code")) {
             handlePostAuthorizationCodeRequest(event);
+        } else if (grantType.equals("refresh_token")) {
+            handlePostRefreshTokenRequest(event);
         } else {
             // 현재는 지원하지 않는 기능
             event.fail(INVALID_REQUEST.exception());
         }
     }
 
+    private void handlePostRefreshTokenRequest(RoutingContext event) {
+        /* required */
+        final String refreshToken = event.request().getFormAttribute("refresh_token");
+        /* optional */
+        final String scope = event.request().getFormAttribute("scope");
+
+        storageService.getAccessTokenDetailByRefreshToken(refreshToken)
+                .onSuccess(token -> refreshToken(event, token, scope))
+                .onFailure(ignored->event.fail(INVALID_REQUEST.exception()));
+    }
+
+    private void refreshToken(final RoutingContext event, final OAuth2AccessToken token, final String newScope){
+        if (newScope != null){
+            // TODO: 기존 토큰과 scope 같은지 검사 후 다르면 실패처리 (삭제 전에 수행)
+        }
+        final String oldAccessToken = token.getAccessToken();
+        token.refresh();
+
+        storageService.deleteAccessToken(oldAccessToken)
+                .compose(ignored->storageService.putAccessToken(token))
+                .compose(ignored->event.response().send(token.toJson().encode()))
+                .onFailure(e -> event.fail(AuthError.SERVER_ERROR.withDetail(e.getMessage()).exception()));
+    }
+
     private void handlePostAuthorizationCodeRequest(RoutingContext event) {
+        /* required */
         final String code = event.request().getFormAttribute("code");
+        /* required */
         final String redirectUri = event.request().getFormAttribute("redirect_uri");
+        /* required */
         final String clientId = event.request().getFormAttribute("client_id");
-        final String authorization = event.request().getHeader("Authorization");
 
         storageService.getClientByClientId(clientId)
                 .compose(clientDetail -> clientAuthHelper.tryAuthenticate(event, clientDetail))
@@ -79,7 +109,8 @@ public class TokenHandler implements Handler<RoutingContext> {
         return storageService.getUserByUserId(codeDetail.getUserId())
                 .compose(user -> getOAuth2AccessToken(clientId, user))
                 .compose(storageService::putAccessToken)
-                .onSuccess(storedAccessToken -> event.response().send(storedAccessToken.toJson().encode()));
+                .onSuccess(storedAccessToken -> event.response().send(storedAccessToken.toJson().encode()))
+                .onFailure(e -> event.fail(AuthError.SERVER_ERROR.withDetail(e.getMessage()).exception()));
     }
 
     private Future<OAuth2AccessToken> getOAuth2AccessToken(String clientId, OAuth2User user) {

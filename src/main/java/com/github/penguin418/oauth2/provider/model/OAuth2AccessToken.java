@@ -40,9 +40,10 @@ public class OAuth2AccessToken {
         this.expiresAt = jsonObject.getInstant("expires_at");
     }
 
-    public JsonObject toJson() {
+    public JsonObject   toJson() {
         return JsonObject.mapFrom(this);
     }
+
     /**
      *  AccessToken
      * RFC 6749 - A.12
@@ -52,5 +53,9 @@ public class OAuth2AccessToken {
     private void generateAccessToken(){
         this.accessToken = RandomGenerator.generateAccessToken(32);
         this.refreshToken = RandomGenerator.generateAccessToken(32);
+    }
+
+    public void refresh(){
+        this.getRefreshToken();
     }
 }
