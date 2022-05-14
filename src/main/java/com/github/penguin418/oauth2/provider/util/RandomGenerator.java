@@ -23,7 +23,7 @@ public class RandomGenerator {
             addAll(Arrays.asList("-",".","_","~","+","/"));
         }};
 
-        int frontPart = random.nextInt(length-1);
+        int frontPart = length/2+random.nextInt((length-1)/2);
         StringBuilder sb = new StringBuilder();
         IntStream.range(0,frontPart).forEach(i-> sb.append(vschar.get(random.nextInt(vschar.size()))));
         IntStream.range(frontPart,length).forEach(i-> sb.append("="));
