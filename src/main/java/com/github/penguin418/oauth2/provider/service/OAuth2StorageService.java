@@ -32,6 +32,10 @@ public interface OAuth2StorageService {
 
     Future<OAuth2AccessToken> getAccessTokenDetail(String accessToken);
 
+    Future<OAuth2AccessToken> getAccessTokenDetailByRefreshToken(String refreshToken);
+
+    Future<Void> deleteAccessToken(String accessToken);
+
     Future<OAuth2Code> putCode(OAuth2Code code);
 
     Future<OAuth2Code> getCodeDetail(String code);
