@@ -1,5 +1,6 @@
 package com.github.penguin418.oauth2.provider.service;
 
+import com.github.penguin418.oauth2.provider.dto.AuthorizationRequest;
 import com.github.penguin418.oauth2.provider.model.*;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.Future;

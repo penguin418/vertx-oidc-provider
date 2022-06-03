@@ -51,7 +51,14 @@ public class OAuth2Code {
         this.expiresAt = jsonObject.getInstant("expires_at");
     }
 
+    public void setCodeChallenge(String codeChallenge, String codeChallengeMethod){
+        this.codeChallenge = codeChallenge;
+        this.codeChallengeMethod = codeChallengeMethod;
+    }
+
     public JsonObject toJson() {
         return JsonObject.mapFrom(this);
     }
+
+    public boolean hasCodeChallenge(){ return this.codeChallenge != null;}
 }

@@ -21,6 +21,9 @@ public class AuthorizationRequest {
     private String redirectUri;
     private String scope;
     private String state;
+    // PKCE(Proof Key for Code Exchange)
+    private String code_challenge;
+    private String code_challenge_method;
 
     public AuthorizationRequest(RoutingContext context){
         final MultiMap map = context.queryParams().contains("response_type")
@@ -40,6 +43,8 @@ public class AuthorizationRequest {
         return this.responseType.equals("code");
     }
 
+    public boolean hasCodeChallenge(){ return this.code_challenge != null; }
+
     public boolean isImplicitGrantRequest(){
         return this.responseType.equals("token");
     }
@@ -51,4 +56,5 @@ public class AuthorizationRequest {
     public boolean isClientCredentialsGrantRequest(){
         return this.grantType.equals("client_credentials");
     }
+
 }
