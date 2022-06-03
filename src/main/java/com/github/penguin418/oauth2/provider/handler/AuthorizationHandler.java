@@ -89,6 +89,10 @@ public class AuthorizationHandler implements Handler<RoutingContext> {
     private void responseToRequest(RoutingContext event, AuthorizationRequest oauth2Request, String userId, OAuth2Permission permissions) {
         if (oauth2Request.isAuthorizationCodeGrantRequest()) {
             OAuth2Code oAuth2code = new OAuth2Code(event.session().id(), userId, oauth2Request.getRedirectUri());
+            // PKCE
+            if (oauth2Request.hasCodeChallenge()){
+                oAuth2code.setCodeChallenge(oauth2Request.getCode_challenge(), oAuth2code.getCodeChallengeMethod());
+            }
             responseToCodeGrantRequest(event, oauth2Request, oAuth2code);
         } else if (oauth2Request.isImplicitGrantRequest()) {
 

@@ -3,6 +3,7 @@ package com.github.penguin418.oauth2.provider.handler;
 import com.github.penguin418.oauth2.provider.dto.AccessTokenResponse;
 import com.github.penguin418.oauth2.provider.exception.AuthError;
 import com.github.penguin418.oauth2.provider.helper.ClientAuthenticationHelper;
+import com.github.penguin418.oauth2.provider.helper.CodeChallengeHelper;
 import com.github.penguin418.oauth2.provider.model.OAuth2AccessToken;
 import com.github.penguin418.oauth2.provider.model.OAuth2Code;
 import com.github.penguin418.oauth2.provider.model.OAuth2User;
@@ -13,8 +14,11 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Instant;
 
 import static com.github.penguin418.oauth2.provider.exception.AuthError.ACCESS_DENIED;
@@ -84,12 +88,38 @@ public class TokenHandler implements Handler<RoutingContext> {
         final String redirectUri = event.request().getFormAttribute("redirect_uri");
         /* required */
         final String clientId = event.request().getFormAttribute("client_id");
+        /* optional */
+        final String codeVerifier = event.request().getFormAttribute("code_verifier");
 
         storageService.getClientByClientId(clientId)
                 .compose(clientDetail -> clientAuthHelper.tryAuthenticate(event, clientDetail))
                 .compose(onVerified -> storageService.getCodeDetail(code))
+                .compose(codeDetail -> checkCodeChallenge(codeDetail, codeVerifier))
                 .compose(codeDetail -> sendBackAccessToken(event, code, redirectUri, clientId, codeDetail))
                 .onFailure(event::fail);
+    }
+
+    private Future<OAuth2Code> checkCodeChallenge(OAuth2Code oAuth2Code, String codeVerifier){
+        Promise<OAuth2Code> promise = Promise.promise();
+        if (oAuth2Code.hasCodeChallenge()){
+            // check required
+            if (codeVerifier != null) {
+                final String challenge = oAuth2Code.getCodeChallenge();
+                final String method = oAuth2Code.getCodeChallengeMethod();
+                CodeChallengeHelper codeChallengeHelper = new CodeChallengeHelper();
+                if (codeChallengeHelper.verifyCodeChallenge(challenge, method, codeVerifier)){
+                    promise.complete(oAuth2Code);
+                }else{
+                    promise.fail(AuthError.ACCESS_DENIED_VERIFIER_DOES_NOT_MATCH.exception());
+                }
+            }else {
+                // has missing parameter (codeVerifier)
+                promise.fail(AuthError.INVALID_REQUEST.exception());
+            }
+        }else{
+            promise.complete(oAuth2Code);
+        }
+        return promise.future();
     }
 
     private Future<OAuth2AccessToken> sendBackAccessToken(RoutingContext event, String code, String redirectUri, String clientId, OAuth2Code codeDetail) {

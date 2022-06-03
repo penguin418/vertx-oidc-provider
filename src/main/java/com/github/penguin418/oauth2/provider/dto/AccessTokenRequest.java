@@ -34,4 +34,9 @@ public class AccessTokenRequest {
      * [Code Grant 의 경우] 필수
      */
     private String clientId;
+    /**
+     *  code_verifier<br>
+     *  PKCE(Proof Key for Code Exchange) 에서 사용되는 원본 code_challenge 의 원본
+     */
+    private String code_verifier;
 }

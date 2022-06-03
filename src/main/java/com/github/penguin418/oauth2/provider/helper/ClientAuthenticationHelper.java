@@ -22,6 +22,12 @@ public class ClientAuthenticationHelper {
         return promise.future();
     }
 
+    /**
+     * Basic Authoirzation 을 사용한 인증
+     * @param context Basic 타입 Authorization 헤더가 있는 요청
+     * @param clientDetail
+     * @return
+     */
     private boolean authWithClientSecretBasic(RoutingContext context, Oauth2Client clientDetail){
         String[] idSecret = parseAuthenticationHeader(context);
         return (clientDetail.getClientId().equals(idSecret[0]) &&
