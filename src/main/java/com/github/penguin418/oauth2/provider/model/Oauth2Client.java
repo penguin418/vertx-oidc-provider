@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
+import io.vertx.ext.web.RoutingContext;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +17,8 @@ import java.util.UUID;
 
 @DataObject
 public class Oauth2Client {
+    public static final String SESSION_STORE_NAME = "authorization_request";
+
     @Getter @Setter
     @JsonProperty("client_id")
     private String clientId;
@@ -36,7 +40,7 @@ public class Oauth2Client {
 
     public Oauth2Client(List<String> responseTypes, List<String> scopes, List<String> redirectUris){
         this.clientId = UUID.randomUUID().toString();
-        this.clientSecret =  UUID.randomUUID().toString();
+        this.clientSecret = UUID.randomUUID().toString();
         this.responseTypes=responseTypes;
         this.scopes=scopes;
         this.redirectUris = redirectUris;
@@ -55,6 +59,7 @@ public class Oauth2Client {
         return BCrypt.verifyer().verify(clientSecret.toCharArray(), this.clientSecret).verified;
     }
 
+    // @DataObject
     public Oauth2Client(JsonObject jsonObject){
         this.clientId=jsonObject.getString("client_id");
         this.clientSecret=jsonObject.getString("client_secret");
@@ -63,6 +68,7 @@ public class Oauth2Client {
         this.redirectUris=jsonObject.getJsonArray("redirect_uris").getList();
     }
 
+    // @DataObject
     public JsonObject toJson(){
         return JsonObject.mapFrom(this);
     }

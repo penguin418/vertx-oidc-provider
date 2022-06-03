@@ -1,5 +1,6 @@
 package com.github.penguin418.oauth2.provider.service;
 
+import com.github.penguin418.oauth2.provider.dto.AuthorizationRequest;
 import com.github.penguin418.oauth2.provider.model.*;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.Future;
@@ -31,6 +32,10 @@ public interface OAuth2StorageService {
     Future<OAuth2AccessToken> putAccessToken(OAuth2AccessToken accessToken);
 
     Future<OAuth2AccessToken> getAccessTokenDetail(String accessToken);
+
+    Future<OAuth2AccessToken> getAccessTokenDetailByRefreshToken(String refreshToken);
+
+    Future<Void> deleteAccessToken(String accessToken);
 
     Future<OAuth2Code> putCode(OAuth2Code code);
 

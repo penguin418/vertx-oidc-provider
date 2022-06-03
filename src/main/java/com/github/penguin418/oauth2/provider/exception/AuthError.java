@@ -10,11 +10,13 @@ public enum AuthError {
     UNAUTHORIZED_CLIENT("unauthorized_client",401, "The client is not authorized to request an access token using this method."),
     ACCESS_DENIED("access_denied", 403,"The resource owner or authorization server denied the request."),
     ACCESS_DENIED_LOGIN_FAILURE("access_denied_login_failure", 401, "Incorrect username or password"),
+    ACCESS_DENIED_VERIFIER_DOES_NOT_MATCH("verifier_does_not_match", 401, "code verifier does not match with code challenge"),
+
     UNSUPPORTED_RESPONSE_TYPE( "unsupported_response_type",400, "The authorization server does not support obtaining an access token using this method"),
     INVALID_SCOPE( "invalid_scope", 400,"The requested scope is invalid, unknown, or malformed."),
     SERVER_ERROR( "server_error", 500,"The authorization server encountered an unexpected event."),
-    TEMPORARILY_UNAVAILABLE("temporarily_unavailable", 429, "The authorization server is currently busy."),
-    ;
+    TEMPORARILY_UNAVAILABLE("temporarily_unavailable", 429, "The authorization server is currently busy.");
+
 
     private final String errorCode;
     private final Integer statusCode;

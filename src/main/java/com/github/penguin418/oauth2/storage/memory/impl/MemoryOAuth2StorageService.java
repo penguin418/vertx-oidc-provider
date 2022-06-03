@@ -8,6 +8,7 @@ import io.vertx.core.Promise;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -88,6 +89,7 @@ public class MemoryOAuth2StorageService implements OAuth2StorageService {
     @Override
     public Future<OAuth2AccessToken> putAccessToken(OAuth2AccessToken accessToken) {
         Promise<OAuth2AccessToken> promise = Promise.promise();
+
         oAuth2AccessTokenStorage.put(accessToken.getAccessToken(), accessToken);
         promise.complete(accessToken);
         return promise.future();
@@ -97,6 +99,28 @@ public class MemoryOAuth2StorageService implements OAuth2StorageService {
     public Future<OAuth2AccessToken> getAccessTokenDetail(String accessToken) {
         Promise<OAuth2AccessToken> promise = Promise.promise();
         promise.complete(oAuth2AccessTokenStorage.get(accessToken));
+        return promise.future();
+    }
+
+
+    public Future<OAuth2AccessToken> getAccessTokenDetailByRefreshToken(String refreshToken){
+        Promise<OAuth2AccessToken> promise = Promise.promise();
+        Optional<OAuth2AccessToken> token = oAuth2AccessTokenStorage.values().stream()
+                .filter(t-> t.getRefreshToken().equals(refreshToken))
+                .findFirst();
+
+        if (token.isPresent()){
+            promise.complete(token.get());
+        }else{
+            promise.fail("not found");
+        }
+        return promise.future();
+    }
+
+    public Future<Void> deleteAccessToken(String accessToken){
+        Promise<Void> promise = Promise.promise();
+        oAuth2AccessTokenStorage.remove(accessToken);
+        promise.complete();
         return promise.future();
     }
 
