@@ -1,6 +1,7 @@
 package com.github.penguin418.oauth2.provider.handler;
 
 import com.github.penguin418.oauth2.provider.dto.AuthorizationRequest;
+import com.github.penguin418.oauth2.provider.dto.PermitRequest;
 import com.github.penguin418.oauth2.provider.exception.AuthError;
 import com.github.penguin418.oauth2.provider.exception.AuthException;
 import com.github.penguin418.oauth2.provider.model.OAuth2AccessToken;
@@ -154,6 +155,7 @@ public class AuthorizationHandler implements Handler<RoutingContext> {
         log.info("redirectToPermissionGrantPage");
         Promise<Void> promise = Promise.promise();
         event.session().put(AuthorizationRequest.SESSION_STORE_NAME, oauth2Request);
+        event.session().put(PermitRequest.SESSION_STORE_NAME, new PermitRequest(oauth2Request.getClientId(), oauth2Request.getScope().split(" ")));
         final String[] scopes = oauth2Request.getScope().split(" ");
         final JsonObject data = new JsonObject().put("permit_uri", permit_uri).put("scopes", scopes);
         event.session().put(VertxConstants.RETURN_URL, event.request().uri());

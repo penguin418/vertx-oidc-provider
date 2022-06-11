@@ -38,7 +38,7 @@ public class AuthorizationServerVerticle extends AbstractVerticle {
         router.route().handler(StaticHandler.create().setCachingEnabled(false));
 
         // oauth2 token handler
-        router.route(token_uri).handler(new TokenHandler(vertx));
+        router.route(token_uri).handler(new TokenHandler(vertx, permit_uri));
 
         // auth
         OAuth2AuthenticationProvider authenticationProvider = new OAuth2AuthenticationProvider(vertx);
