@@ -1,6 +1,7 @@
 package com.github.penguin418.oauth2.provider.handler;
 
 import com.github.penguin418.oauth2.provider.dto.AuthorizationRequest;
+import com.github.penguin418.oauth2.provider.dto.PermitRequest;
 import com.github.penguin418.oauth2.provider.model.OAuth2Permission;
 import com.github.penguin418.oauth2.provider.model.OAuth2User;
 import com.github.penguin418.oauth2.provider.model.constants.VertxConstants;
@@ -42,15 +43,16 @@ public class PermitHandler implements Handler<RoutingContext> {
     }
 
     private void handlePostRequest(RoutingContext event) {
-        final AuthorizationRequest oauth2Request = event.session().get(AuthorizationRequest.SESSION_STORE_NAME);
+        final PermitRequest permitRequest = event.session().get(PermitRequest.SESSION_STORE_NAME);
         final OAuth2User oAuth2User = OAuth2User.getLoggedInUser(event);
-        if (oauth2Request != null && oAuth2User!=null) {
+        if (permitRequest != null && oAuth2User!=null) {
             final String userId = oAuth2User.getUserId();
-            final String clientId = oauth2Request.getClientId();
-            final String[] scopes = oauth2Request.getScope().split(" ");
+            final String clientId = permitRequest.getClientId();
+            final String[] scopes = permitRequest.getScopes();
 
             storageService.putPermission(new OAuth2Permission(userId, clientId, Arrays.asList(scopes)));
             String returnUrl = event.request().headers().get("Referer");
+            event.session().remove(PermitRequest.SESSION_STORE_NAME);
             event.redirect(returnUrl);
         }
     }

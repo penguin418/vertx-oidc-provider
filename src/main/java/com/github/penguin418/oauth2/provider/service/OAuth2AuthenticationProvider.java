@@ -33,7 +33,11 @@ public class OAuth2AuthenticationProvider implements AuthenticationProvider {
                 resultHandler.handle(createUser(user));
             }else{
                 log.info("not - verified !!");
+                resultHandler.handle(null);
             }
+        }).onFailure(fail->{
+            log.error("error : {}", fail.toString());
+            resultHandler.handle(null);
         });
     }
 

@@ -40,21 +40,21 @@ public class AuthorizationRequest {
 
 
     public boolean isAuthorizationCodeGrantRequest(){
-        return this.responseType.equals("code");
+        return "code".equals(this.responseType);
     }
 
-    public boolean hasCodeChallenge(){ return this.code_challenge != null; }
+    public boolean hasCodeChallenge(){ return null != this.code_challenge; }
 
     public boolean isImplicitGrantRequest(){
-        return this.responseType.equals("token");
+        return "token".equals(this.responseType);
     }
 
     public boolean isResourceOwnerPasswordCredentialsGrantRequest(){
-        return this.grantType.equals("password");
+        return "password".equals(this.grantType);
     }
 
     public boolean isClientCredentialsGrantRequest(){
-        return this.grantType.equals("client_credentials");
+        return "client_credentials".equals(this.grantType);
     }
 
 }
