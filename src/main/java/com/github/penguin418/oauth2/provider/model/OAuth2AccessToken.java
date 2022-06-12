@@ -25,6 +25,12 @@ public class OAuth2AccessToken {
     @JsonProperty("expires_at")
     private Instant expiresAt;
 
+    public OAuth2AccessToken(String clientId){
+        this.clientId = clientId;
+        this.expiresAt = Instant.now().plus(1, ChronoUnit.HOURS);
+        generateAccessToken();
+    }
+
     public OAuth2AccessToken(String clientId, String username){
         this.clientId = clientId;
         this.username = username;

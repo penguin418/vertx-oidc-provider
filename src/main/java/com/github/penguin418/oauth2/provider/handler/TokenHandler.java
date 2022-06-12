@@ -63,10 +63,35 @@ public class TokenHandler implements Handler<RoutingContext> {
             handlePostRefreshTokenRequest(event);
         } else if (grantType.equals("password")) {
             handlePostPasswordGrantRequest(event);
+        } else if (grantType.equals("client_credentials")) {
+            handlePostClientCredentialGrantRequest(event);
         } else {
             // 현재는 지원하지 않는 기능
             event.fail(INVALID_REQUEST.exception());
         }
+    }
+
+    private void handlePostClientCredentialGrantRequest(RoutingContext event) {
+        final String clientId = event.request().getFormAttribute("client_id");
+        final String clientSecret = event.request().getFormAttribute("client_secret");
+        final String scope = event.request().getFormAttribute("scope");
+
+        storageService.getClientByClientId(clientId)
+                .compose(clientDetail -> verifyClient(clientDetail, clientSecret))
+                .compose(onVerified -> sendBackClientCredentialGrantedAccessToken(event, clientId))
+                .onFailure(fail -> {
+                    if (fail instanceof AuthException) {
+                        AuthException authFail = (AuthException) fail;
+                        switch (authFail.getErrorMsg()) {
+                            case UNAUTHORIZED_CLIENT:
+                                redirectToPermissionGrantPage(event, clientId, scope);
+                                break;
+                            default:
+                                event.fail(ACCESS_DENIED.exception());
+                        }
+                    } else
+                        event.fail(ACCESS_DENIED.exception());
+                });
     }
 
     private void handlePostPasswordGrantRequest(RoutingContext event) {
@@ -208,6 +233,12 @@ public class TokenHandler implements Handler<RoutingContext> {
         return storageService.getUserByUsername(username)
                 .compose(user -> getOAuth2AccessToken(clientId, user))
                 .compose(storageService::putAccessToken)
+                .onSuccess(storedAccessToken -> event.response().send(storedAccessToken.toJson().encode()));
+    }
+
+    private Future<OAuth2AccessToken> sendBackClientCredentialGrantedAccessToken(RoutingContext event, String clientId) {
+        OAuth2AccessToken accessToken = new OAuth2AccessToken(clientId);
+        return storageService.putAccessToken(accessToken)
                 .onSuccess(storedAccessToken -> event.response().send(storedAccessToken.toJson().encode()));
     }
 
