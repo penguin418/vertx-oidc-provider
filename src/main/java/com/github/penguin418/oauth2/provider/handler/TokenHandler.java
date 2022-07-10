@@ -1,6 +1,5 @@
 package com.github.penguin418.oauth2.provider.handler;
 
-import com.github.penguin418.oauth2.provider.dto.AuthorizationRequest;
 import com.github.penguin418.oauth2.provider.dto.PermitRequest;
 import com.github.penguin418.oauth2.provider.exception.AuthError;
 import com.github.penguin418.oauth2.provider.exception.AuthException;
@@ -178,7 +177,7 @@ public class TokenHandler implements Handler<RoutingContext> {
         final String codeVerifier = event.request().getFormAttribute("code_verifier");
 
         storageService.getClientByClientId(clientId)
-                .compose(clientDetail -> clientAuthHelper.tryAuthenticate(event, clientDetail))
+                .compose(clientDetail -> clientAuthHelper.tryClientAuthenticate(event, clientDetail))
                 .compose(onVerified -> storageService.getCodeDetail(code))
                 .compose(codeDetail -> checkCodeChallenge(codeDetail, codeVerifier))
                 .compose(codeDetail -> sendBackAccessToken(event, code, redirectUri, clientId, codeDetail))

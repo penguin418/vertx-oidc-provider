@@ -17,10 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthorizationServerVerticle extends AbstractVerticle {
     private final String common_uri = "/*";
+    // resource uri
+    private final String user_info_uri = "/oauth2/user_info";
+    // oauth2 uri
     private final String authorization_uri = "/oauth2/authorize";
     private final String token_uri = "/oauth2/token";
-    private final String user_info_uri = "/oauth2/user_info";
-
     private final String login_uri = "/oauth2/login";
     private final String permit_uri = "/oauth2/permit";
 
@@ -37,15 +38,7 @@ public class AuthorizationServerVerticle extends AbstractVerticle {
         router.route().handler(BodyHandler.create());
         router.route().handler(StaticHandler.create().setCachingEnabled(false));
 
-        // oauth2 token handler
-        router.route(token_uri).handler(new TokenHandler(vertx, permit_uri));
-
-        // auth
-        OAuth2AuthenticationProvider authenticationProvider = new OAuth2AuthenticationProvider(vertx);
-        AuthenticationHandler authSessionHandler = new AuthSessionHandler(authenticationProvider, vertx, login_uri);
-        router.get(login_uri).handler(new LoginHandler(vertx, login_uri, permit_uri));
-        router.post(login_uri).handler(FormLoginHandler.create(authenticationProvider));
-
+        // logging
         router.route().handler(ctx -> {
             String user = ctx.user() == null ? "" : OAuth2User.getLoggedInUser(ctx).toJson().encode();
             String headers = ctx.request().headers().toString();
@@ -54,11 +47,23 @@ public class AuthorizationServerVerticle extends AbstractVerticle {
             ctx.next();
         });
 
+        // oauth2 resources
+        router.route(user_info_uri).handler(new UserInfoHandler(vertx));
 
+        // oauth2 token
+        router.route(token_uri).handler(new TokenHandler(vertx, permit_uri));
+
+        // auth process
+        // before login
+        OAuth2AuthenticationProvider authenticationProvider = new OAuth2AuthenticationProvider(vertx);
+        AuthenticationHandler authSessionHandler = new AuthSessionHandler(authenticationProvider, vertx, login_uri);
+        router.get(login_uri).handler(new LoginHandler(vertx, login_uri, permit_uri));
+        router.post(login_uri).handler(FormLoginHandler.create(authenticationProvider));
+        // after login
         router.route(common_uri).handler(authSessionHandler);
         router.route(authorization_uri).handler(new AuthorizationHandler(vertx, permit_uri));
-        router.route(user_info_uri).handler(new UserInfoHandler(vertx));
         router.route(permit_uri).handler(new PermitHandler(vertx, permit_uri, login_uri));
+
         vertx.createHttpServer().requestHandler(router).listen(8888);
         startPromise.complete();
     }
