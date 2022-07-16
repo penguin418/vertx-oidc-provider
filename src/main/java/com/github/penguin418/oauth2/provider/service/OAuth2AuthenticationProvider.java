@@ -13,6 +13,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Authorization 헤더로 부터 clientId와 clientSecret 을 확인
+ */
 @Slf4j
 public class OAuth2AuthenticationProvider implements AuthenticationProvider {
     private final OAuth2StorageService storageService;
