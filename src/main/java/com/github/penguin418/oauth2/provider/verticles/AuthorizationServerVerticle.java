@@ -1,5 +1,6 @@
 package com.github.penguin418.oauth2.provider.verticles;
 
+import com.github.penguin418.oauth2.dcr.handler.DynamicClientRegistrationHandler;
 import com.github.penguin418.oauth2.provider.filter.AuthSessionHandler;
 import com.github.penguin418.oauth2.provider.handler.*;
 import com.github.penguin418.oauth2.provider.handler.AuthorizationHandler;
@@ -17,6 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthorizationServerVerticle extends AbstractVerticle {
     private final String common_uri = "/*";
+    // dynamic client register uri
+    private final String dynamic_client_register_uri = "/register";
+
     // resource uri
     private final String user_info_uri = "/oauth2/user_info";
     // oauth2 uri
@@ -50,16 +54,19 @@ public class AuthorizationServerVerticle extends AbstractVerticle {
         // oauth2 resources
         router.route(user_info_uri).handler(new UserInfoHandler(vertx));
 
+        // dynamic client register
+        router.route(dynamic_client_register_uri).handler(new DynamicClientRegistrationHandler(vertx));
+
         // oauth2 token
         router.route(token_uri).handler(new TokenHandler(vertx, permit_uri));
 
         // auth process
         // before login
         OAuth2AuthenticationProvider authenticationProvider = new OAuth2AuthenticationProvider(vertx);
-        AuthenticationHandler authSessionHandler = new AuthSessionHandler(authenticationProvider, vertx, login_uri);
         router.get(login_uri).handler(new LoginHandler(vertx, login_uri, permit_uri));
         router.post(login_uri).handler(FormLoginHandler.create(authenticationProvider));
-        // after login
+        // after login & redirect to login
+        AuthenticationHandler authSessionHandler = new AuthSessionHandler(authenticationProvider, vertx, login_uri);
         router.route(common_uri).handler(authSessionHandler);
         router.route(authorization_uri).handler(new AuthorizationHandler(vertx, permit_uri));
         router.route(permit_uri).handler(new PermitHandler(vertx, permit_uri, login_uri));

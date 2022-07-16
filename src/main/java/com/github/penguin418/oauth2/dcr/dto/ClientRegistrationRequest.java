@@ -1,11 +1,15 @@
 package com.github.penguin418.oauth2.dcr.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.vertx.core.MultiMap;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -17,6 +21,39 @@ import java.util.List;
 @Getter
 @Setter
 public class ClientRegistrationRequest {
+
+    public ClientRegistrationRequest(RoutingContext context) {
+        final JsonObject map = context.getBodyAsJson();
+
+        this.redirectUris = Arrays.asList(map.getString("redirect_uris").split(","));
+        this.tokenEndpointAuthMethod = map.getString("token_endpoint_auth_method");
+        try {
+            this.grantTypes = Arrays.asList(map.getString("grant_types").split(","));
+        } catch (NullPointerException ignored) {
+        }
+        try {
+            this.responseTypes = Arrays.asList(map.getString("response_types"));
+        } catch (NullPointerException ignored) {
+        }
+        this.clientName = map.getString("client_name");
+        this.clientUri = map.getString("client_uri");
+        this.logoUri = map.getString("logo_uri");
+        this.scope = map.getString("scope");
+        try {
+            this.contacts = Arrays.asList(map.getString("contacts"));
+        } catch (NullPointerException ignored) {
+        }
+        try {
+            this.tosUri = Arrays.asList(map.getString("tos_uri"));
+        } catch (NullPointerException ignored) {
+        }
+        this.policyUri = map.getString("policy_uri");
+        this.jwksUri = map.getString("jwks_uri");
+        this.jwks = map.getString("jwks");
+        this.softwareId = map.getString("software_id");
+        this.softwareVersion = map.getString("software_version");
+    }
+
     /**
      * required for redirect-based flows(authorization_code, implicit)
      */
