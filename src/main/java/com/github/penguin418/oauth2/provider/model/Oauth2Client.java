@@ -3,6 +3,7 @@ package com.github.penguin418.oauth2.provider.model;
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.penguin418.oauth2.provider.util.RandomGenerator;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
@@ -39,12 +40,11 @@ public class Oauth2Client {
     private boolean isNew = false;
 
     public Oauth2Client(List<String> responseTypes, List<String> scopes, List<String> redirectUris){
-        this.clientId = UUID.randomUUID().toString();
-        this.clientSecret = UUID.randomUUID().toString();
         this.responseTypes=responseTypes;
         this.scopes=scopes;
         this.redirectUris = redirectUris;
         this.isNew = true;
+        generateClient();
     }
 
     public Oauth2Client encrypt(){
@@ -68,6 +68,16 @@ public class Oauth2Client {
         this.redirectUris=jsonObject.getJsonArray("redirect_uris").getList();
     }
 
+    /**
+     *  AccessToken
+     * RFC 6749 - A.12
+     * VSCHAR
+     * 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" ) *"="
+     */
+    private void generateClient(){
+        this.clientId = RandomGenerator.generateAccessToken(32);
+        this.clientSecret = RandomGenerator.generateAccessToken(32);
+    }
     // @DataObject
     public JsonObject toJson(){
         return JsonObject.mapFrom(this);

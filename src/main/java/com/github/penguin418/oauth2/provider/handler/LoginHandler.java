@@ -42,7 +42,7 @@ public class LoginHandler implements Handler<RoutingContext> {
     @Override
     public void handle(RoutingContext event) {
         if (event.request().method().equals(HttpMethod.GET)) {
-            thymeleafUtil.render(event, login_uri_info, login_uri);
+            thymeleafUtil.render(event,  login_uri, login_uri_info);
 
 //            getUserIfLoggedIn(event)
 //                    .onSuccess(user -> checkPermissionThenRedirect(event))
@@ -147,6 +147,6 @@ public class LoginHandler implements Handler<RoutingContext> {
         log.info("redirectToPermissionGrantPage");
         final String[] scopes = oauth2Request.getScope().split(" ");
         final JsonObject data = new JsonObject().put("permit_uri", permit_uri).put("scopes", scopes);
-        thymeleafUtil.render(event, data, permit_uri);
+        thymeleafUtil.render(event, permit_uri, data);
     }
 }

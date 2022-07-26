@@ -20,7 +20,7 @@ public class RandomGenerator {
         List<String> vschar = new ArrayList<String>(){{
             addAll(Arrays.asList(alpha));
             addAll(Arrays.asList(number));
-            addAll(Arrays.asList("-",".","_","~","+","/"));
+            addAll(Arrays.asList("-",".","_","~","/")); // + 도 들어갈 수 있으나, 인코딩이 필요하므로 제거
         }};
 
         int frontPart = length/2+random.nextInt((length-1)/2);

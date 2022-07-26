@@ -11,7 +11,7 @@ import java.util.Base64;
 public class ClientAuthenticationHelper {
     private static final String AUTHENTICATION_HEADER_NAME = "authorization";
 
-    public Future<Void> tryAuthenticate(RoutingContext context, Oauth2Client clientDetail){
+    public Future<Void> tryClientAuthenticate(RoutingContext context, Oauth2Client clientDetail){
         Promise<Void> promise = Promise.promise();
         try {
             if (authWithClientSecretBasic(context, clientDetail))
@@ -22,6 +22,11 @@ public class ClientAuthenticationHelper {
         return promise.future();
     }
 
+    public String parseResourceOwnerAuthenticationHeader(RoutingContext context){
+        final String authHeader=context.request().getHeader(AUTHENTICATION_HEADER_NAME);
+        return authHeader.substring("Bearer ".length()).trim();
+    }
+
     /**
      * Basic Authoirzation 을 사용한 인증
      * @param context Basic 타입 Authorization 헤더가 있는 요청
@@ -29,14 +34,14 @@ public class ClientAuthenticationHelper {
      * @return
      */
     private boolean authWithClientSecretBasic(RoutingContext context, Oauth2Client clientDetail){
-        String[] idSecret = parseAuthenticationHeader(context);
+        String[] idSecret = parseClientAuthenticationHeader(context);
         return (clientDetail.getClientId().equals(idSecret[0]) &&
                 clientDetail.verified(idSecret[1]));
     }
 
-    private String[] parseAuthenticationHeader(RoutingContext context){
+    private String[] parseClientAuthenticationHeader(RoutingContext context){
         final String authHeader=context.request().getHeader(AUTHENTICATION_HEADER_NAME);
-        final String credential = authHeader.substring("Basic".length()).trim();
+        final String credential = authHeader.substring("Basic ".length()).trim();
         final byte[] credDecoded = Base64.getDecoder().decode(credential);
 
         final String credPairs = new String(credDecoded, StandardCharsets.UTF_8); // credPairs = username:password
