@@ -159,7 +159,7 @@ public class AuthorizationHandler implements Handler<RoutingContext> {
         final String[] scopes = oauth2Request.getScope().split(" ");
         final JsonObject data = new JsonObject().put("permit_uri", permit_uri).put("scopes", scopes);
         event.session().put(VertxConstants.RETURN_URL, event.request().uri());
-        thymeleafUtil.render(event, data, permit_uri);
+        thymeleafUtil.render(event, permit_uri, data);
         promise.complete();
         return promise.future();
     }

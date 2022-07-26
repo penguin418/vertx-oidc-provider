@@ -19,9 +19,13 @@ public class ThymeleafUtil {
         this.engine = ThymeleafTemplateEngine.create(vertx);
     }
 
-    public Future<Buffer> render(RoutingContext context, JsonObject data, String path) {
+    public Future<Buffer> render(RoutingContext context, String path, JsonObject data) {
         return engine.render(data, String.format("%s/%s.html", DEFAULT_WEB_ROOT, path)).onSuccess(result -> {
             context.response().end(result);
         }).onFailure(context::fail);
+    }
+
+    public Future<Buffer> render(RoutingContext context, String path) {
+        return render(context,path,new JsonObject());
     }
 }

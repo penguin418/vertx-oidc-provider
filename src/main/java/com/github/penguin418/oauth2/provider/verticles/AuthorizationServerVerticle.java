@@ -1,5 +1,6 @@
 package com.github.penguin418.oauth2.provider.verticles;
 
+import com.github.penguin418.oauth2.auth.handler.SignUpHandler;
 import com.github.penguin418.oauth2.dcr.handler.DynamicClientRegistrationHandler;
 import com.github.penguin418.oauth2.provider.filter.AuthSessionHandler;
 import com.github.penguin418.oauth2.provider.handler.*;
@@ -20,6 +21,7 @@ public class AuthorizationServerVerticle extends AbstractVerticle {
     private final String common_uri = "/*";
     // dynamic client register uri
     private final String dynamic_client_register_uri = "/register";
+    private final String signup_uri = "/signup";
 
     // resource uri
     private final String user_info_uri = "/oauth2/user_info";
@@ -53,6 +55,7 @@ public class AuthorizationServerVerticle extends AbstractVerticle {
 
         // oauth2 resources
         router.route(user_info_uri).handler(new UserInfoHandler(vertx));
+        router.route(signup_uri).handler(new SignUpHandler(vertx,signup_uri));
 
         // dynamic client register
         router.route(dynamic_client_register_uri).handler(new DynamicClientRegistrationHandler(vertx));
