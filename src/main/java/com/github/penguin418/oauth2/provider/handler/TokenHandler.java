@@ -12,12 +12,10 @@ import com.github.penguin418.oauth2.provider.model.Oauth2Client;
 import com.github.penguin418.oauth2.provider.model.constants.VertxConstants;
 import com.github.penguin418.oauth2.provider.service.OAuth2StorageService;
 import com.github.penguin418.oauth2.provider.util.ThymeleafUtil;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.ParsedHeaderValues;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 
@@ -171,10 +169,22 @@ public class TokenHandler implements Handler<RoutingContext> {
         final String code = event.request().getFormAttribute("code");
         /* required */
         final String redirectUri = event.request().getFormAttribute("redirect_uri");
-        /* required */
+        /* recommended */
         final String clientId = event.request().getFormAttribute("client_id");
+        final String clientSecret = event.request().getFormAttribute("client_secret");
         /* optional */
         final String codeVerifier = event.request().getFormAttribute("code_verifier");
+
+        // verification
+        boolean clientVerified = false;
+        if (clientId != null && clientSecret != null){
+            // form attribute
+            log.info("form: {}", event.request().formAttributes());
+        }else{
+            ParsedHeaderValues values = event.parsedHeaders();
+            log.info("client id is not in form attributes");
+            log.info("headers: {}", values);
+        }
 
         storageService.getClientByClientId(clientId)
                 .compose(clientDetail -> clientAuthHelper.tryClientAuthenticate(event, clientDetail))

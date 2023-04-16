@@ -55,24 +55,28 @@ public class AuthorizationServerVerticle extends AbstractVerticle {
 
         // oauth2 resources
         router.route(user_info_uri).handler(new UserInfoHandler(vertx));
+        log.info(String.format("%-30s:%s","user_info_url", user_info_uri));
         router.route(signup_uri).handler(new SignUpHandler(vertx,signup_uri));
-
+        log.info(String.format("%-30s:%s","signup_uri", signup_uri));
         // dynamic client register
         router.route(dynamic_client_register_uri).handler(new DynamicClientRegistrationHandler(vertx));
-
+        log.info(String.format("%-30s:%s","dynamic_client_register_uri", dynamic_client_register_uri));
         // oauth2 token
         router.route(token_uri).handler(new TokenHandler(vertx, permit_uri));
-
+        log.info(String.format("%-30s:%s","token_uri", token_uri));
         // auth process
         // before login
         OAuth2AuthenticationProvider authenticationProvider = new OAuth2AuthenticationProvider(vertx);
         router.get(login_uri).handler(new LoginHandler(vertx, login_uri, permit_uri));
         router.post(login_uri).handler(FormLoginHandler.create(authenticationProvider));
+        log.info(String.format("%-30s:%s","login_uri", login_uri));
         // after login & redirect to login
         AuthenticationHandler authSessionHandler = new AuthSessionHandler(authenticationProvider, vertx, login_uri);
         router.route(common_uri).handler(authSessionHandler);
         router.route(authorization_uri).handler(new AuthorizationHandler(vertx, permit_uri));
+        log.info(String.format("%-30s:%s","authorization_uri", authorization_uri));
         router.route(permit_uri).handler(new PermitHandler(vertx, permit_uri, login_uri));
+        log.info(String.format("%-30s:%s","permit_uri", permit_uri));
 
         vertx.createHttpServer().requestHandler(router).listen(8888);
         startPromise.complete();

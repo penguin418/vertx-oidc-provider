@@ -13,9 +13,17 @@ public class ClientAuthenticationHelper {
 
     public Future<Void> tryClientAuthenticate(RoutingContext context, Oauth2Client clientDetail){
         Promise<Void> promise = Promise.promise();
+
         try {
-            if (authWithClientSecretBasic(context, clientDetail))
-                promise.complete();
+            final String authHeader=context.request().getHeader(AUTHENTICATION_HEADER_NAME);
+            if (authHeader != null){
+                if (authWithClientSecretBasic(context, clientDetail))
+                    promise.complete();
+            }else{
+                if (authWithClientSecretForm(context, clientDetail))
+                    promise.complete();
+
+            }
         } finally {
             promise.tryFail("");
         }
@@ -25,6 +33,19 @@ public class ClientAuthenticationHelper {
     public String parseResourceOwnerAuthenticationHeader(RoutingContext context){
         final String authHeader=context.request().getHeader(AUTHENTICATION_HEADER_NAME);
         return authHeader.substring("Bearer ".length()).trim();
+    }
+
+    /**
+     * Form Attribute 을 사용한 인증
+     * @param context client_id, client_secret 이 들어있는 form
+     * @param clientDetail
+     * @return
+     */
+    private boolean authWithClientSecretForm(RoutingContext context, Oauth2Client clientDetail){
+        final String clientId = context.request().getFormAttribute("client_id");
+        final String clientSecret = context.request().getFormAttribute("client_secret");
+        return (clientDetail.getClientId().equals(clientId) &&
+                clientDetail.verified(clientSecret));
     }
 
     /**
