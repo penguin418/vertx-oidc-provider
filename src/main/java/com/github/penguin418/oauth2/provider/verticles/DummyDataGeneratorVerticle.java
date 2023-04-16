@@ -20,9 +20,9 @@ public class DummyDataGeneratorVerticle extends AbstractVerticle {
                 Arrays.asList("code"),
                 Arrays.asList("login"),
                 Arrays.asList("https://oauth.pstmn.io/v1/callback"));
-        log.info("new dummy client={}", client.toJson());
         client.setClientId("2");
         client.setClientSecret("1");
+        log.info("new dummy client={}", client.toJson());
         storageService.putClient(client.encrypt());
 
         OAuth2User user = new OAuth2User(
