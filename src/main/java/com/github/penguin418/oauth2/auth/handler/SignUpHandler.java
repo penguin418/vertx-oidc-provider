@@ -7,7 +7,6 @@ import com.github.penguin418.oauth2.provider.util.ThymeleafUtil;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
 import static com.github.penguin418.oauth2.provider.exception.AuthError.INVALID_REQUEST;

@@ -3,12 +3,10 @@ package com.github.penguin418.oauth2.dcr.handler;
 import com.github.penguin418.oauth2.dcr.dto.ClientRegistrationRequest;
 import com.github.penguin418.oauth2.provider.model.Oauth2Client;
 import com.github.penguin418.oauth2.provider.service.OAuth2StorageService;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.Arrays;

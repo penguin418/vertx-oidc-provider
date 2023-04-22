@@ -1,16 +1,13 @@
 package com.github.penguin418.oauth2.provider.handler;
 
-import com.github.penguin418.oauth2.provider.dto.AuthorizationRequest;
 import com.github.penguin418.oauth2.provider.dto.PermitRequest;
 import com.github.penguin418.oauth2.provider.model.OAuth2Permission;
 import com.github.penguin418.oauth2.provider.model.OAuth2User;
-import com.github.penguin418.oauth2.provider.model.constants.VertxConstants;
 import com.github.penguin418.oauth2.provider.service.OAuth2StorageService;
 import com.github.penguin418.oauth2.provider.util.ThymeleafUtil;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 
