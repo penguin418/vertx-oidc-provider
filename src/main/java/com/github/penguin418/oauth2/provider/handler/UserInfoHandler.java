@@ -1,7 +1,6 @@
 package com.github.penguin418.oauth2.provider.handler;
 
 import com.github.penguin418.oauth2.provider.dto.UserInfoResponse;
-import com.github.penguin418.oauth2.provider.exception.AuthException;
 import com.github.penguin418.oauth2.provider.helper.ClientAuthenticationHelper;
 import com.github.penguin418.oauth2.provider.model.OAuth2AccessToken;
 import com.github.penguin418.oauth2.provider.model.OAuth2User;
@@ -44,12 +43,7 @@ public class UserInfoHandler implements Handler<RoutingContext> {
                 .compose(accessToken -> checkAccessToken(accessToken, credential))
                 .compose(this::retrieveUserInfo)
                 .compose(userInfo -> sendBackUserInfo(userInfo, event))
-                .onFailure(fail -> {
-                    if (fail instanceof AuthException){
-                        event.fail(fail);
-                    }else
-                        event.fail(SERVER_ERROR.exception());
-                });
+                .onFailure(fail -> event.fail(SERVER_ERROR.exceptionIfNotExpected(fail)));
     }
 
     private Future<OAuth2AccessToken> checkAccessToken(OAuth2AccessToken accessToken, String credential){
