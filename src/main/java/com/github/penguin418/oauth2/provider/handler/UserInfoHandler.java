@@ -45,7 +45,10 @@ public class UserInfoHandler implements Handler<RoutingContext> {
                 .compose(this::retrieveUserInfo)
                 .compose(userInfo -> sendBackUserInfo(userInfo, event))
                 .onFailure(fail -> {
-                    event.fail(TEMPORARILY_UNAVAILABLE.exception());
+                    if (fail instanceof AuthException){
+                        event.fail(fail);
+                    }else
+                        event.fail(SERVER_ERROR.exception());
                 });
     }
 
