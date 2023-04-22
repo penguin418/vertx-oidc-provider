@@ -1,28 +1,21 @@
 package com.github.penguin418.oauth2.provider.handler;
 
-import com.github.penguin418.oauth2.provider.dto.AuthorizationRequest;
-import com.github.penguin418.oauth2.provider.dto.PermitRequest;
 import com.github.penguin418.oauth2.provider.dto.UserInfoResponse;
 import com.github.penguin418.oauth2.provider.exception.AuthException;
 import com.github.penguin418.oauth2.provider.helper.ClientAuthenticationHelper;
 import com.github.penguin418.oauth2.provider.model.OAuth2AccessToken;
-import com.github.penguin418.oauth2.provider.model.OAuth2Permission;
 import com.github.penguin418.oauth2.provider.model.OAuth2User;
-import com.github.penguin418.oauth2.provider.model.constants.VertxConstants;
 import com.github.penguin418.oauth2.provider.service.OAuth2StorageService;
-import com.github.penguin418.oauth2.provider.util.ThymeleafUtil;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
-import java.util.Arrays;
 
 import static com.github.penguin418.oauth2.provider.exception.AuthError.*;
 
@@ -80,11 +73,13 @@ public class UserInfoHandler implements Handler<RoutingContext> {
 
     private Future<Void> sendBackUserInfo(OAuth2User userInfo, RoutingContext event){
         Promise<Void> promise = Promise.promise();
-        UserInfoResponse userInfoResponse = new UserInfoResponse();
-        userInfoResponse.setSub(userInfo.getUserId());
+        UserInfoResponse userInfoResponse = new UserInfoResponse(userInfo.getUserId());
+        userInfoResponse.setPreferredUsername(userInfo.getUsername());
         userInfoResponse.setNickname(userInfo.getUsername());
         userInfoResponse.setEmail(userInfo.getUsername());
-        event.response().send(Json.encode(userInfoResponse));
+        event.response()
+                .putHeader("Content-Type", "application/json")
+                .send(Json.encode(userInfoResponse));
         promise.complete();
         return promise.future();
     }
