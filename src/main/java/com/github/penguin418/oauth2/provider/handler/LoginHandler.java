@@ -1,9 +1,6 @@
 package com.github.penguin418.oauth2.provider.handler;
 
 import com.github.penguin418.oauth2.provider.dto.AuthorizationRequest;
-import com.github.penguin418.oauth2.provider.exception.AuthError;
-import com.github.penguin418.oauth2.provider.model.OAuth2Code;
-import com.github.penguin418.oauth2.provider.model.OAuth2Permission;
 import com.github.penguin418.oauth2.provider.model.OAuth2User;
 import com.github.penguin418.oauth2.provider.service.OAuth2StorageService;
 import com.github.penguin418.oauth2.provider.util.ThymeleafUtil;
@@ -15,8 +12,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Arrays;
 
 import static com.github.penguin418.oauth2.provider.exception.AuthError.*;
 

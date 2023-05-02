@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
@@ -30,4 +29,11 @@ public class UserInfoResponse {
     private Boolean phoneNumberVerified;
     private String address;
     private Long updatedAt;
+
+    protected UserInfoResponse(){}
+
+    public UserInfoResponse(String sub){
+        this.sub = sub;
+    }
+
 }

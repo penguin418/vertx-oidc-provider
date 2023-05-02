@@ -1,40 +1,33 @@
 package com.github.penguin418.oauth2.provider.handler;
 
-import com.github.penguin418.oauth2.provider.dto.AuthorizationRequest;
-import com.github.penguin418.oauth2.provider.dto.PermitRequest;
 import com.github.penguin418.oauth2.provider.dto.UserInfoResponse;
-import com.github.penguin418.oauth2.provider.exception.AuthException;
 import com.github.penguin418.oauth2.provider.helper.ClientAuthenticationHelper;
 import com.github.penguin418.oauth2.provider.model.OAuth2AccessToken;
-import com.github.penguin418.oauth2.provider.model.OAuth2Permission;
 import com.github.penguin418.oauth2.provider.model.OAuth2User;
-import com.github.penguin418.oauth2.provider.model.constants.VertxConstants;
 import com.github.penguin418.oauth2.provider.service.OAuth2StorageService;
-import com.github.penguin418.oauth2.provider.util.ThymeleafUtil;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
-import java.util.Arrays;
 
 import static com.github.penguin418.oauth2.provider.exception.AuthError.*;
 
 @Slf4j
 public class UserInfoHandler implements Handler<RoutingContext> {
     private final Vertx vertx;
-    private final OAuth2StorageService storageService;
-    private ClientAuthenticationHelper authenticationHelper = new ClientAuthenticationHelper();
 
-    public UserInfoHandler(Vertx vertx) {
+    private final OAuth2StorageService storageService;
+    private final ClientAuthenticationHelper authenticationHelper = new ClientAuthenticationHelper();
+
+    public UserInfoHandler(Vertx vertx, OAuth2StorageService storageService) {
         this.vertx = vertx;
-        this.storageService = OAuth2StorageService.createProxy(vertx);
+        this.storageService = storageService;
     }
 
 
@@ -45,15 +38,13 @@ public class UserInfoHandler implements Handler<RoutingContext> {
         } else event.fail(INVALID_REQUEST.exception());
     }
 
-    private void handlePostRequest(RoutingContext event) {
+    protected void handlePostRequest(RoutingContext event) {
         final String credential = authenticationHelper.parseResourceOwnerAuthenticationHeader(event);
         storageService.getAccessTokenDetail(credential)
                 .compose(accessToken -> checkAccessToken(accessToken, credential))
                 .compose(this::retrieveUserInfo)
                 .compose(userInfo -> sendBackUserInfo(userInfo, event))
-                .onFailure(fail -> {
-                    event.fail(TEMPORARILY_UNAVAILABLE.exception());
-                });
+                .onFailure(fail -> event.fail(SERVER_ERROR.exceptionIfNotExpected(fail)));
     }
 
     private Future<OAuth2AccessToken> checkAccessToken(OAuth2AccessToken accessToken, String credential){
@@ -80,11 +71,13 @@ public class UserInfoHandler implements Handler<RoutingContext> {
 
     private Future<Void> sendBackUserInfo(OAuth2User userInfo, RoutingContext event){
         Promise<Void> promise = Promise.promise();
-        UserInfoResponse userInfoResponse = new UserInfoResponse();
-        userInfoResponse.setSub(userInfo.getUserId());
+        UserInfoResponse userInfoResponse = new UserInfoResponse(userInfo.getUserId());
+        userInfoResponse.setPreferredUsername(userInfo.getUsername());
         userInfoResponse.setNickname(userInfo.getUsername());
         userInfoResponse.setEmail(userInfo.getUsername());
-        event.response().send(Json.encode(userInfoResponse));
+        event.response()
+                .putHeader("Content-Type", "application/json")
+                .send(Json.encode(userInfoResponse));
         promise.complete();
         return promise.future();
     }

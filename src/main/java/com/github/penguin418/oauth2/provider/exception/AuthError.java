@@ -43,6 +43,17 @@ public enum AuthError {
         return new AuthException(this);
     }
 
+    public AuthException exception(Throwable t){
+        return new AuthException(this, t);
+    }
+    public AuthException exceptionIfNotExpected(Throwable t){
+        if (t instanceof AuthException){
+            return (AuthException) t;
+        }else
+            return exception(t);
+
+    }
+
     public String getErrorCode() {
         return errorCode;
     }

@@ -14,7 +14,7 @@ repositories {
 }
 
 ext {
-    vertxVersion = "4.2.5"
+    vertxVersion = "4.4.1"
     lombokVersion = "1.18.12"
 }
 
@@ -22,6 +22,8 @@ dependencies {
     implementation "io.vertx:vertx-core:$vertxVersion"
     implementation "io.vertx:vertx-web:$vertxVersion"
     implementation "io.vertx:vertx-web-validation:$vertxVersion"
+    testImplementation "io.vertx:vertx-unit:$vertxVersion"
+    testImplementation "io.vertx:vertx-junit5:$vertxVersion"
     implementation "org.junit.jupiter:junit-jupiter:5.8.2"
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.2"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.2"
@@ -48,6 +50,9 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok:$lombokVersion"
     testCompileOnly "org.projectlombok:lombok:$lombokVersion"
     testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+
+    // test
+    testImplementation 'org.mockito:mockito-core:4.1.0'
 }
 
 test {
