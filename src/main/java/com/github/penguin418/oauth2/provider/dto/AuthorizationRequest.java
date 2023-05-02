@@ -20,16 +20,16 @@ public class AuthorizationRequest {
     private String clientId;
     private String redirectUri;
     private String scope;
+
     private String state;
     // PKCE(Proof Key for Code Exchange)
     private String code_challenge;
     private String code_challenge_method;
 
     public AuthorizationRequest(RoutingContext context){
-        final MultiMap map = context.queryParams().contains("response_type")
-                ? context.request().params()
-                : context.request().formAttributes();
+    }
 
+    public AuthorizationRequest(MultiMap map){
         this.responseType = map.get("response_type");
         this.grantType = map.get("grant_type");
         this.redirectUri = map.get("redirect_uri");

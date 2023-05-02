@@ -12,10 +12,7 @@ import com.github.penguin418.oauth2.provider.model.constants.VertxConstants;
 import com.github.penguin418.oauth2.provider.service.OAuth2StorageService;
 import com.github.penguin418.oauth2.provider.util.ThymeleafUtil;
 import com.github.penguin418.oauth2.provider.validation.AuthorizationRequestValidation;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.NonNull;
@@ -46,7 +43,10 @@ public class AuthorizationHandler implements Handler<RoutingContext> {
     @Override
     public void handle(RoutingContext event) {
         // parse request
-        final AuthorizationRequest request = new AuthorizationRequest(event);
+        final MultiMap params = event.queryParams().contains("response_type")
+                ? event.request().params()
+                : event.request().formAttributes();
+        final AuthorizationRequest request = new AuthorizationRequest(params);
 
         if (request.isAuthorizationCodeGrantRequest()) {
             handleCodeGrant(event, request);
