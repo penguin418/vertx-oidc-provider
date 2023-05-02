@@ -21,12 +21,13 @@ import static com.github.penguin418.oauth2.provider.exception.AuthError.*;
 @Slf4j
 public class UserInfoHandler implements Handler<RoutingContext> {
     private final Vertx vertx;
-    private final OAuth2StorageService storageService;
-    private ClientAuthenticationHelper authenticationHelper = new ClientAuthenticationHelper();
 
-    public UserInfoHandler(Vertx vertx) {
+    private final OAuth2StorageService storageService;
+    private final ClientAuthenticationHelper authenticationHelper = new ClientAuthenticationHelper();
+
+    public UserInfoHandler(Vertx vertx, OAuth2StorageService storageService) {
         this.vertx = vertx;
-        this.storageService = OAuth2StorageService.createProxy(vertx);
+        this.storageService = storageService;
     }
 
 
@@ -37,7 +38,7 @@ public class UserInfoHandler implements Handler<RoutingContext> {
         } else event.fail(INVALID_REQUEST.exception());
     }
 
-    private void handlePostRequest(RoutingContext event) {
+    protected void handlePostRequest(RoutingContext event) {
         final String credential = authenticationHelper.parseResourceOwnerAuthenticationHeader(event);
         storageService.getAccessTokenDetail(credential)
                 .compose(accessToken -> checkAccessToken(accessToken, credential))

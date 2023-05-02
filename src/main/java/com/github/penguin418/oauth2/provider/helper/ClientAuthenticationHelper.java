@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 public class ClientAuthenticationHelper {
-    private static final String AUTHENTICATION_HEADER_NAME = "authorization";
+    public static final String AUTHENTICATION_HEADER_NAME = "authorization";
 
     public Future<Void> tryClientAuthenticate(RoutingContext context, Oauth2Client clientDetail){
         Promise<Void> promise = Promise.promise();
@@ -22,9 +22,8 @@ public class ClientAuthenticationHelper {
             }else{
                 if (authWithClientSecretForm(context, clientDetail))
                     promise.complete();
-
             }
-        } finally {
+        } catch (NullPointerException | IllegalArgumentException e){
             promise.tryFail("");
         }
         return promise.future();
@@ -32,7 +31,9 @@ public class ClientAuthenticationHelper {
 
     public String parseResourceOwnerAuthenticationHeader(RoutingContext context){
         final String authHeader=context.request().getHeader(AUTHENTICATION_HEADER_NAME);
-        return authHeader.substring("Bearer ".length()).trim();
+        if (authHeader != null)
+            return authHeader.substring("Bearer ".length()).trim();
+        return null;
     }
 
     /**

@@ -7,6 +7,7 @@ import com.github.penguin418.oauth2.provider.handler.*;
 import com.github.penguin418.oauth2.provider.handler.AuthorizationHandler;
 import com.github.penguin418.oauth2.provider.model.OAuth2User;
 import com.github.penguin418.oauth2.provider.service.OAuth2AuthenticationProvider;
+import com.github.penguin418.oauth2.provider.service.OAuth2StorageService;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
@@ -54,7 +55,7 @@ public class AuthorizationServerVerticle extends AbstractVerticle {
         });
 
         // oauth2 resources
-        router.route(user_info_uri).handler(new UserInfoHandler(vertx));
+        router.route(user_info_uri).handler(new UserInfoHandler(vertx, OAuth2StorageService.createProxy(vertx)));
         log.info(String.format("%-30s:%s","user_info_url", user_info_uri));
         router.route(signup_uri).handler(new SignUpHandler(vertx,signup_uri));
         log.info(String.format("%-30s:%s","signup_uri", signup_uri));
